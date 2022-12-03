@@ -21,7 +21,7 @@ From the 2018 paper, we could have the following table:
 
 with the constraints:
 
-$$
+```math
 \begin{align}
 & p_{train}(y=1|z=0)\\
 
@@ -34,11 +34,11 @@ $$
 & p_{train}(z=1) = p_{test}(z=1) = Const_z
 
 \end{align}
-$$
+```
 
 In our case (and the following code to implement this), we made some tweaks by introduing a new variable $\alpha_{test}$ (defined below), so that **given**:
 <a id="factors"></a>
-$$ 
+```math
 \begin{align}
 & \alpha_{test} = \frac{p_{test}(y=1|z=1)}{p_{test}(y=1|z=0)}\\
 
@@ -48,10 +48,10 @@ $$
 
 & p_{train}(z=1) = p_{test}(z=1) = p\_mix\_z1
 \end{align}
-$$
+```
 
 we **could calculate**:
-$$
+```math
 \begin{align}
 
 & p_{train}(y=1|z=1) \\
@@ -59,7 +59,7 @@ $$
 & p_{train}(y=1) = p_{test}(y=1) \\
 
 \end{align}
-$$
+```
 
 Given two data sets, we need an additional parameter `train_test_ratio`. Together with [provided parameters](#factors), we call them distribution controlling parameters. Given those, the [full table](#contigency_table) could be calculated. 
 
