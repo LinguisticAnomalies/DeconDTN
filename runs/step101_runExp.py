@@ -29,13 +29,15 @@ def cfg():
 
     p_pos_train_z0 = [0.2]
     p_pos_train_z1 = [0.4]
-    p_mix_z1 = np.arange(0.1, 0.999, 0.1)
-    alpha_test = np.arange(0, 10, 0.1)
+    p_mix_z1 = [0.1, 0.999, 0.1]  # will be changed into np.arange(0.1, 0.999, 0.1)
+    alpha_test = [0, 10, 00.1]  # np.arange(0, 10, 0.1)
     train_test_ratio = [4]
     n_test = [
         150
     ]  # the number of testing examples; set to None to disable (i.e., get as many examples as possible)
     n_test_error = [0]
+
+    n_valid_high = 10
 
     rand_seed_np = 24
     rand_seed_torch = 187
@@ -72,10 +74,8 @@ def cfg():
     # Create observers
     destination = os.path.join("output", ex.path, proj_name)
 
-    try:
-        os.mkdir(destination)
-    except OSError:
-        print(f"Folder {destination} creation FAILED!")
+    if not os.path.exists(destination):
+        os.mkdirs(destination)
 
     file_observ = FileStorageObserver.create(destination)
     ex.observers.append(file_observ)
@@ -92,10 +92,16 @@ def main(
     train_test_ratio,
     n_test,
     n_test_error,
+    n_valid_high,
     rand_seed_np,
     rand_seed_torch,
 ):
 
+    # ============= format
+    p_mix_z1 = np.arange(p_mix_z1[0], p_mix_z1[1], p_mix_z1[2])
+    alpha_test = np.arange(alpha_test[0], alpha_test[1], alpha_test[2])
+
+    # ============= Load data
     df_wls_merge = load_wls()
     df_adress = load_adress()
 
@@ -128,7 +134,7 @@ def main(
 
         if (
             (ret is not None)
-            and (ret["n_df0_train_pos"] >= 10)
+            and (ret["n_df0_train_pos"] >= n_valid_high)
         ):  # valie high combos
             valid_high_combinations.append(combination)
             valid_full_settings.append(ret)
