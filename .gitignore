@@ -1,0 +1,6 @@
+# ignore list
+output/*
+*.ipynb
+src/__pycache__/*
+
+!CORALL_experiment.ipynb
