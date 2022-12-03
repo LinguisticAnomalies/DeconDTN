@@ -3,5 +3,6 @@ output/*
 notebooks/*
 src/__pycache__/*
 */*.ipynb_checkpoints/*
+tmp*
 
 !notebooks/CORAAL_experiment.ipynb

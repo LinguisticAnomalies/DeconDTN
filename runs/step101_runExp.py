@@ -75,7 +75,7 @@ def cfg():
     destination = os.path.join("output", ex.path, proj_name)
 
     if not os.path.exists(destination):
-        os.mkdirs(destination)
+        os.makedirs(destination)
 
     file_observ = FileStorageObserver.create(destination)
     ex.observers.append(file_observ)
