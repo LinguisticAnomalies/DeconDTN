@@ -129,7 +129,6 @@ def main(
         if (
             (ret is not None)
             and (ret["n_df0_train_pos"] >= 10)
-            and (combination[4] == 4)
         ):  # valie high combos
             valid_high_combinations.append(combination)
             valid_full_settings.append(ret)
