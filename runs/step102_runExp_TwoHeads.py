@@ -269,8 +269,5 @@ def main(
     with open(os.path.join(destination, "results.pkl"), "wb") as f:
         pickle.dump(obj=losses_dict, file=f)
 
-    # save
-    with open(os.path.join(destination, "results.pkl"), "wb") as f:
-        pickle.dump(obj=losses_dict, file=f)
 
     return 0
