@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+
 # from tqdm import tqdm
 
 import torch
@@ -15,7 +16,9 @@ transformers.logging.set_verbosity_error()
 
 
 class TransformerDataset(torch.utils.data.Dataset):
-    def __init__(self, X, y=None, pretrained="bert-based-uncased", max_length=50):
+    def __init__(
+        self, X, y=None, y_domain=None, pretrained="bert-based-uncased", max_length=50
+    ):
 
         # load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(pretrained)
@@ -36,11 +39,21 @@ class TransformerDataset(torch.utils.data.Dataset):
         else:
             self.labels = None
 
+        if y_domain is not None:
+            assert len(X) == len(y_domain)
+            assert isinstance(y_domain, pd.DataFrame)
+            self.domain_labels = torch.FloatTensor(y_domain.values)
+        else:
+            self.domain_labels = None
+
     def __getitem__(self, idx):
         item = {key: val[idx] for key, val in self.encodings.items()}
 
         if self.labels is not None:
             item["labels"] = self.labels[idx]
+
+        if self.domain_labels is not None:
+            item["domain_labels"] = self.domain_labels[idx]
 
         return item
 

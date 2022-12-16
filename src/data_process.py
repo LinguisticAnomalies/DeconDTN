@@ -1,5 +1,12 @@
+import os
+import sys
+
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from config.data_dict import domain_index_dict
 
 
 def load_wls():
@@ -37,15 +44,12 @@ def load_wls():
         (df_wls_merge["age 2011"] <= 79)
         & (df_wls_merge["education"] <= 12)
         & (df_wls_merge["category fluency, scored words named, 2011"] < 12),
-
         (df_wls_merge["age 2011"] <= 79)
         & (df_wls_merge["education"] > 12)
         & (df_wls_merge["category fluency, scored words named, 2011"] < 14),
-
         (df_wls_merge["age 2011"] > 79)
         & (df_wls_merge["education"] <= 12)
         & (df_wls_merge["category fluency, scored words named, 2011"] < 10.5),
-
         (df_wls_merge["age 2011"] > 79)
         & (df_wls_merge["education"] > 12)
         & (df_wls_merge["category fluency, scored words named, 2011"] < 12),
@@ -88,3 +92,18 @@ def load_adress():
     )
 
     return df_adress
+
+
+def load_wls_adress_AddDomain(dt="wls"):
+
+    if dt == "wls":
+        df = load_wls()
+    elif dt == "adress":
+        df = load_adress()
+    else:
+        sys.error("Unrecognized dataset name (supported: 'wls','adress')")
+
+    df["domain"] = dt
+    df["domain_index"] = df["domain"].map(domain_index_dict)
+
+    return df

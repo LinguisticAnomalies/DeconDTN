@@ -54,7 +54,7 @@ we **could calculate**:
 ```math
 \begin{align}
 
-& p_{train}(y=1|z=1) \\
+& p_{test}(y=1|z=0) \\
 & p_{test}(y=1|z=1) \\
 & p_{train}(y=1) = p_{test}(y=1) \\
 
