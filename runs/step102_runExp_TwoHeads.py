@@ -19,6 +19,7 @@ from src.utils import confoundSplitNumbers, confoundSplitDF
 from src.AdversarialModel import GradientReverseModel
 from src.data_process import load_wls_adress_AddDomain
 
+
 # Define experiment and load ingredients
 ex = Experiment()
 
@@ -231,6 +232,24 @@ def main(
                 X=X_test, device="cuda:0"
             )
 
+            # save predictions
+            y_main_pred.to_csv(
+                os.path.join(destination, f"RandomRun_{i}", "y_main_pred.csv"),
+                index=False,
+            )
+            y_main_prob.to_csv(
+                os.path.join(destination, f"RandomRun_{i}", "y_main_prob.csv"),
+                index=False,
+            )
+            y_domain_pred.to_csv(
+                os.path.join(destination, f"RandomRun_{i}", "y_domain_pred.csv"),
+                index=False,
+            )
+            y_domain_prob.to_csv(
+                os.path.join(destination, f"RandomRun_{i}", "y_domain_prob.csv"),
+                index=False,
+            )
+
             # collect metrics: loss, auroc, auprc, f1
             loss = torch.nn.NLLLoss()
 
@@ -244,21 +263,34 @@ def main(
             # num_domain_label
             multilabel_binarizer = MultiLabelBinarizer(classes=range(num_labels))
 
+            if num_labels == 2:
+                average_curve = "macro"
+                average_f1 = "binary"
+            elif num_labels > 2:
+                # ovr style AUROC/AUPRC, average="micro"
+                average_curve = "micro"
+                average_f1 = "micro"
+
             _auroc.append(
                 metrics.roc_auc_score(
                     y_true=multilabel_binarizer.fit_transform(y_test.values),
                     y_score=y_main_prob,
-                    average="micro",
+                    average=average_curve,
                 )
             )
+            
             _auprc.append(
                 metrics.average_precision_score(
                     y_true=multilabel_binarizer.fit_transform(y_test.values),
                     y_score=y_main_prob,
-                    average="micro",
+                    average=average_curve,
                 )
             )
-            _f1_at_05.append(metrics.f1_score(y_true=y_test.values, y_pred=y_main_pred))
+            _f1_at_05.append(
+                metrics.f1_score(
+                    y_true=y_test.values, y_pred=y_main_pred, average=average_f1
+                )
+            )
 
         losses_dict["losses"].append(losses)
         losses_dict["auroc"].append(_auroc)
@@ -268,6 +300,5 @@ def main(
     # save metrics
     with open(os.path.join(destination, "results.pkl"), "wb") as f:
         pickle.dump(obj=losses_dict, file=f)
-
 
     return 0

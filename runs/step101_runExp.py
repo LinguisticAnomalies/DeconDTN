@@ -218,6 +218,8 @@ def main(
 
             y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
 
+
+            # NOTE: the following loss and auroc/auprc/f1 are only working for one column (hard-coded as "label") as y
             loss = torch.nn.BCELoss()
 
             _loss = loss(

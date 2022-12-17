@@ -63,9 +63,8 @@ class GradientReverseModel:
         self,
         pretrained="bert-base-uncased",
         max_length=50,
-        labels=None,  # TODO: change to column name containing class indicies, [0,1,2,3, ...]
-        num_labels=1,  # TODO: do i need this??
-        num_domain_labels=None,  # TODO: do i need this??
+        num_labels=2,
+        num_domain_labels=None,
         hidden_dropout_prob=0.1,
         num_epochs=10,
         num_warmup_steps=0,
@@ -73,14 +72,25 @@ class GradientReverseModel:
         lr=5e-5,
         balance_weights=False,
         grad_norm=1.0,
-        # domain_labels=None,  # TODO: add to docstring "domain_index"
     ):
+
+        """init
+
+        Args:
+            pretrained (str, optional): pretrained language model from huggingface. Defaults to "bert-base-uncased".
+            max_length (int, optional): max length for tokenizer. Defaults to 50.
+            num_labels (int, optional): number of classes for Main Label. Defaults to 2.
+            num_domain_labels (int, optional): number of classes for Domain (Secondary) Label. Defaults to None.
+            num_epochs (int, optional): training epochs. Defaults to 10.
+            num_warmup_steps (int, optional): optimizer warmup. Defaults to 0.
+            batch_size (int, optional): batch size. Defaults to 50.
+            lr (float, optional): learning rate. Defaults to 5e-5.
+            balance_weights (bool, optional): whether to balance weights. Defaults to False.
+            grad_norm (float, optional): gradient norm clip. Defaults to 1.0.
         """
-        domain_labels: column name for domain identifier index, in form [0,1,3,2, ...]. NOT Categorical labels like ["female", "male", "female", ...]
-        """
+
         self.pretrained = pretrained
         self.max_length = max_length
-        self.labels = labels
         self.num_labels = num_labels
         self.hidden_dropout_prob = hidden_dropout_prob
         self.num_epochs = num_epochs
@@ -89,7 +99,6 @@ class GradientReverseModel:
         self.lr = lr
         self.balance_weights = balance_weights
         self.grad_norm = grad_norm
-        # TODO: reorg here
         self.model = None
 
         # assert domain_labels is not None
@@ -107,6 +116,15 @@ class GradientReverseModel:
         )
 
     def trainModel(self, X, y, y_domain, device=None):
+        """_summary_
+
+        Args:
+            X (pandas.Series, or numpy.array, 1D): 1D-array (pandas or numpy or list) containing X
+            y (pandas.Series): main outcome(s). Could be multiple dimensions. For each column, y should be indices after conversion from original categories, e.g., [0,2,1,1,...], INSTEAD of ["High","Medium","Low","Low",...]
+            y_domain (pandas.Series): secondary outcome(s). In the same format as of `y`
+            device (_type_, optional): cuda or cpu. Defaults to None.
+        """
+
         dataset = TransformerDataset(
             X=X,
             y=y,
@@ -184,7 +202,7 @@ class GradientReverseModel:
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                # progress_bar.update(1)
+                progress_bar.update(1)
 
     def trainModelWithTest(
         self, X, y, y_domain_train, X_test, y_test, y_domain_test, device=None
@@ -283,7 +301,7 @@ class GradientReverseModel:
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
-                # progress_bar.update(1)
+                progress_bar.update(1)
 
             self.loss_epochs.append(loss_epoch)
 
@@ -323,7 +341,6 @@ class GradientReverseModel:
             self.loss_test_total_epochs.append(
                 loss_test_main_epoch + loss_test_domain_epoch
             )
-
 
     def predict(self, X, device=None):
 
@@ -378,7 +395,7 @@ class GradientReverseModel:
             y_domain_pred.append(predictions_domain)
             y_domain_prob.append(probs_domain.cpu().detach().numpy())
 
-            # progress_bar.update(1)
+            progress_bar.update(1)
 
         # concatenate predictions
         y_main_pred = np.concatenate(y_main_pred, axis=0)
@@ -388,8 +405,10 @@ class GradientReverseModel:
         y_domain_prob = np.concatenate(y_domain_prob, axis=0)
 
         # package predictions in data frame
-        y_main_pred = pd.DataFrame(y_main_pred, columns=self.labels)
-        y_main_prob = pd.DataFrame(y_main_prob, columns=self.labels)
+        # y_main_pred = pd.DataFrame(y_main_pred, columns=self.labels)
+        # y_main_prob = pd.DataFrame(y_main_prob, columns=self.labels)
+        y_main_pred = pd.DataFrame(y_main_pred)
+        y_main_prob = pd.DataFrame(y_main_prob)
 
         # y_domain_pred = pd.DataFrame(y_domain_pred, columns=self.domain_labels)
         # y_domain_prob = pd.DataFrame(y_domain_prob, columns=self.domain_labels)
