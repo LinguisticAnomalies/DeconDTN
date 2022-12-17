@@ -101,3 +101,15 @@ The basic use case example is:
 ### Multiple Data Sources and Multi-class Outcome
 **TODO**
 
+## Model Architectures
+
+### `NeuralModel`
+not very suitable in the setting of single label prediction. Old model, originally designed for multi-class multi-label prediction, using BCE loss.
+
+### `NeuralSingleLabelModel`
+Multi-class single-label prediction framework. One prediction head. Base BERT structure.
+
+### `GradientReverseModel`
+Multi-class single-label framework, with two predictions heads: main and secondary. For example, main could be Dementia ~ No Dementia, secondary could be Pitts ~ WLS.
+
+TODO: apply gradient reversal method!

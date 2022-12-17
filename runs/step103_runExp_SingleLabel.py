@@ -4,6 +4,7 @@ import random
 import itertools
 import pickle
 from sklearn import metrics
+from sklearn.preprocessing import MultiLabelBinarizer
 from tqdm.auto import tqdm
 
 import pandas as pd
@@ -15,7 +16,7 @@ from sacred.observers import FileStorageObserver
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.utils import confoundSplitNumbers, confoundSplitDF
-from src.NeuralModel import NeuralModel
+from src.NeuralSingleLabelModel import NeuralSingleLabelModel
 from src.data_process import load_wls, load_adress
 
 # Define experiment and load ingredients
@@ -42,14 +43,14 @@ def cfg():
     rand_seed_np = 24
     rand_seed_torch = 187
 
-    num_labels = 1
+    num_labels = 2
 
     pretrained = "bert-base-uncased"
     device = "cuda:0"
 
     max_length = 120
     num_epochs = 6
-    problem_type = "multi_label_classification"
+    problem_type = "single_label_classification"
     hidden_dropout_prob = 0.1
     num_warmup_steps = 0
     batch_size = 50
@@ -59,7 +60,7 @@ def cfg():
     balance_weights = False
 
     model_config = {}
-    # model_config['model_type'] = model_type
+    model_config["problem_type"] = problem_type
     model_config["pretrained"] = pretrained
     model_config["max_length"] = max_length
     model_config["num_labels"] = num_labels
@@ -85,6 +86,7 @@ def cfg():
 def main(
     model_config,
     destination,
+    num_labels,
     p_pos_train_z0,
     p_pos_train_z1,
     p_mix_z1,
@@ -132,13 +134,11 @@ def main(
             n_test_error=combination[6],
         )
 
-        if (
-            (ret is not None)
-            and (ret["n_df0_train_pos"] >= n_valid_high)
+        if (ret is not None) and (
+            ret["n_df0_train_pos"] >= n_valid_high
         ):  # valie high combos
             valid_high_combinations.append(combination)
             valid_full_settings.append(ret)
-
 
     # ============ Modeling
     losses_dict = {}
@@ -210,7 +210,7 @@ def main(
             X_test = df_test["text"]
             y_test = df_test[["label"]]
 
-            model = NeuralModel(**model_config)
+            model = NeuralSingleLabelModel(**model_config)
 
             model.load_pretrained()
 
@@ -218,21 +218,67 @@ def main(
 
             y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
 
+            # save predictions
+            destination_runs = os.path.join(
+                destination, "_".join([str(x) for x in c]), f"RandomRun_{i}"
+            )
+            if not os.path.exists(destination_runs):
+                os.makedirs(destination_runs)
+
+            X_test.to_csv(
+                os.path.join(destination_runs, "x_test.csv"),
+                index=False,
+            )
+            y_pred.to_csv(
+                os.path.join(destination_runs, "y_pred.csv"),
+                index=False,
+            )
+            y_prob.to_csv(
+                os.path.join(destination_runs, "y_prob.csv"),
+                index=False,
+            )
 
             # NOTE: the following loss and auroc/auprc/f1 are only working for one column (hard-coded as "label") as y
-            loss = torch.nn.BCELoss()
+            loss = torch.nn.NLLLoss()
 
             _loss = loss(
-                torch.FloatTensor(y_prob.loc[:, 0]), torch.FloatTensor(y_test["label"])
+                torch.log(torch.tensor(y_prob.values)),
+                torch.tensor(y_test.values).squeeze(1),
             )
 
             losses.append(_loss.item())
 
-            _auroc.append(metrics.roc_auc_score(y_true=y_test["label"], y_score=y_prob))
-            _auprc.append(
-                metrics.average_precision_score(y_true=y_test["label"], y_score=y_prob)
+            # num_domain_label
+            multilabel_binarizer = MultiLabelBinarizer(classes=range(num_labels))
+
+            if num_labels == 2:
+                average_curve = "macro"
+                average_f1 = "binary"
+            elif num_labels > 2:
+                # ovr style AUROC/AUPRC, average="micro"
+                average_curve = "micro"
+                average_f1 = "micro"
+
+            _auroc.append(
+                metrics.roc_auc_score(
+                    y_true=multilabel_binarizer.fit_transform(y_test.values),
+                    y_score=y_prob,
+                    average=average_curve,
+                )
             )
-            _f1_at_05.append(metrics.f1_score(y_true=y_test["label"], y_pred=y_pred))
+
+            _auprc.append(
+                metrics.average_precision_score(
+                    y_true=multilabel_binarizer.fit_transform(y_test.values),
+                    y_score=y_prob,
+                    average=average_curve,
+                )
+            )
+            _f1_at_05.append(
+                metrics.f1_score(
+                    y_true=y_test.values, y_pred=y_pred, average=average_f1
+                )
+            )
 
         losses_dict["losses"].append(losses)
         losses_dict["auroc"].append(_auroc)

@@ -32,7 +32,7 @@ def cfg():
     p_pos_train_z0 = [0.2]
     p_pos_train_z1 = [0.4]
     p_mix_z1 = [0.1, 0.999, 0.1]  # will be changed into np.arange(0.1, 0.999, 0.1)
-    alpha_test = [0, 10, 00.1]  # np.arange(0, 10, 0.1)
+    alpha_test = [0, 10, 0.1]  # np.arange(0, 10, 0.1)
     train_test_ratio = [4]
     n_test = [
         150
@@ -52,7 +52,6 @@ def cfg():
 
     max_length = 120
     num_epochs = 6
-    problem_type = "multi_label_classification"
     hidden_dropout_prob = 0.1
     num_warmup_steps = 0
     batch_size = 50
@@ -233,20 +232,30 @@ def main(
             )
 
             # save predictions
+            destination_runs = os.path.join(
+                destination, "_".join([str(x) for x in c]), f"RandomRun_{i}"
+            )
+            if not os.path.exists(destination_runs):
+                os.makedirs(destination_runs)
+
+            X_test.to_csv(
+                os.path.join(destination_runs, "x_test.csv"),
+                index=False,
+            )
             y_main_pred.to_csv(
-                os.path.join(destination, f"RandomRun_{i}", "y_main_pred.csv"),
+                os.path.join(destination_runs, "y_main_pred.csv"),
                 index=False,
             )
             y_main_prob.to_csv(
-                os.path.join(destination, f"RandomRun_{i}", "y_main_prob.csv"),
+                os.path.join(destination_runs, "y_main_prob.csv"),
                 index=False,
             )
             y_domain_pred.to_csv(
-                os.path.join(destination, f"RandomRun_{i}", "y_domain_pred.csv"),
+                os.path.join(destination_runs, "y_domain_pred.csv"),
                 index=False,
             )
             y_domain_prob.to_csv(
-                os.path.join(destination, f"RandomRun_{i}", "y_domain_prob.csv"),
+                os.path.join(destination_runs, "y_domain_prob.csv"),
                 index=False,
             )
 
@@ -278,7 +287,7 @@ def main(
                     average=average_curve,
                 )
             )
-            
+
             _auprc.append(
                 metrics.average_precision_score(
                     y_true=multilabel_binarizer.fit_transform(y_test.values),
