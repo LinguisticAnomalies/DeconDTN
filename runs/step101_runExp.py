@@ -30,7 +30,7 @@ def cfg():
     p_pos_train_z0 = [0.2]
     p_pos_train_z1 = [0.4]
     p_mix_z1 = [0.1, 0.999, 0.1]  # will be changed into np.arange(0.1, 0.999, 0.1)
-    alpha_test = [0, 10, 00.1]  # np.arange(0, 10, 0.1)
+    alpha_test = [0, 10, 0.1]  # np.arange(0, 10, 0.1)
     train_test_ratio = [4]
     n_test = [
         150
@@ -219,6 +219,8 @@ def main(
 
             y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
 
+
+            # NOTE: the following loss and auroc/auprc/f1 are only working for one column (hard-coded as "label") as y
             loss = torch.nn.BCELoss()
 
             _loss = loss(

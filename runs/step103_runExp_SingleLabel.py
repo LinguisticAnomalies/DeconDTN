@@ -16,9 +16,8 @@ from sacred.observers import FileStorageObserver
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.utils import confoundSplitNumbers, confoundSplitDF
-from src.AdversarialModel import GradientReverseModel
-from src.data_process import load_wls_adress_AddDomain
-
+from src.NeuralSingleLabelModel import NeuralSingleLabelModel
+from src.data_process import load_wls, load_adress
 
 # Define experiment and load ingredients
 ex = Experiment()
@@ -45,13 +44,13 @@ def cfg():
     rand_seed_torch = 187
 
     num_labels = 2
-    num_domain_labels = 2
 
     pretrained = "bert-base-uncased"
     device = "cuda:0"
 
     max_length = 120
     num_epochs = 6
+    problem_type = "single_label_classification"
     hidden_dropout_prob = 0.1
     num_warmup_steps = 0
     batch_size = 50
@@ -61,11 +60,10 @@ def cfg():
     balance_weights = False
 
     model_config = {}
-    # model_config['model_type'] = model_type
+    model_config["problem_type"] = problem_type
     model_config["pretrained"] = pretrained
     model_config["max_length"] = max_length
     model_config["num_labels"] = num_labels
-    model_config["num_domain_labels"] = num_domain_labels
     model_config["hidden_dropout_prob"] = hidden_dropout_prob
     model_config["num_epochs"] = num_epochs
     model_config["num_warmup_steps"] = num_warmup_steps
@@ -89,7 +87,6 @@ def main(
     model_config,
     destination,
     num_labels,
-    num_domain_labels,
     p_pos_train_z0,
     p_pos_train_z1,
     p_mix_z1,
@@ -107,8 +104,8 @@ def main(
     alpha_test = np.arange(alpha_test[0], alpha_test[1], alpha_test[2])
 
     # ============= Load data
-    df_wls_merge = load_wls_adress_AddDomain(dt="wls")
-    df_adress = load_wls_adress_AddDomain(dt="adress")
+    df_wls_merge = load_wls()
+    df_adress = load_adress()
 
     # ============= calculate valid_high_combination and valid_full_settings
     valid_high_combinations = []
@@ -173,10 +170,9 @@ def main(
         for i in range(5):
             _rand = random.randint(0, 1000)
 
-            # Given combination of parameters, find dataframe split
             combination = c
             # combination = (0.201, 0.6, 0.3, 1.0, 4)
-
+            # combination = (0.201, 0.7, 0.5, 1.4, 4)
             ret = confoundSplitDF(
                 df0=df_wls_merge,
                 df1=df_adress,
@@ -192,44 +188,35 @@ def main(
                 n_test_error=combination[6],
             )
 
-            # split dataframe
             df_train = pd.concat(
                 [
-                    ret["sample_df0_train"][["text", "label", "domain_index"]],
-                    ret["sample_df1_train"][["text", "label", "domain_index"]],
+                    ret["sample_df0_train"][["text", "label"]],
+                    ret["sample_df1_train"][["text", "label"]],
                 ],
                 ignore_index=True,
             )
 
             df_test = pd.concat(
                 [
-                    ret["sample_df0_test"][["text", "label", "domain_index"]],
-                    ret["sample_df1_test"][["text", "label", "domain_index"]],
+                    ret["sample_df0_test"][["text", "label"]],
+                    ret["sample_df1_test"][["text", "label"]],
                 ],
                 ignore_index=True,
             )
 
             X_train = df_train["text"]
             y_train = df_train[["label"]]
-            y_domain_train = df_train[["domain_index"]]
 
             X_test = df_test["text"]
             y_test = df_test[["label"]]
-            y_domain_test = df_test[["domain_index"]]
 
-            # == Modeling Start
-            model = GradientReverseModel(**model_config)
+            model = NeuralSingleLabelModel(**model_config)
 
             model.load_pretrained()
 
-            # train & predict
-            model.trainModel(
-                X=X_train, y=y_train, y_domain=y_domain_train, device="cuda:0"
-            )
+            model.trainModel(X=X_train, y=y_train, device="cuda:0")
 
-            y_main_pred, y_main_prob, y_domain_pred, y_domain_prob = model.predict(
-                X=X_test, device="cuda:0"
-            )
+            y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
 
             # save predictions
             destination_runs = os.path.join(
@@ -242,28 +229,20 @@ def main(
                 os.path.join(destination_runs, "x_test.csv"),
                 index=False,
             )
-            y_main_pred.to_csv(
-                os.path.join(destination_runs, "y_main_pred.csv"),
+            y_pred.to_csv(
+                os.path.join(destination_runs, "y_pred.csv"),
                 index=False,
             )
-            y_main_prob.to_csv(
-                os.path.join(destination_runs, "y_main_prob.csv"),
-                index=False,
-            )
-            y_domain_pred.to_csv(
-                os.path.join(destination_runs, "y_domain_pred.csv"),
-                index=False,
-            )
-            y_domain_prob.to_csv(
-                os.path.join(destination_runs, "y_domain_prob.csv"),
+            y_prob.to_csv(
+                os.path.join(destination_runs, "y_prob.csv"),
                 index=False,
             )
 
-            # collect metrics: loss, auroc, auprc, f1
+            # NOTE: the following loss and auroc/auprc/f1 are only working for one column (hard-coded as "label") as y
             loss = torch.nn.NLLLoss()
 
             _loss = loss(
-                torch.log(torch.tensor(y_main_prob.values)),
+                torch.log(torch.tensor(y_prob.values)),
                 torch.tensor(y_test.values).squeeze(1),
             )
 
@@ -283,7 +262,7 @@ def main(
             _auroc.append(
                 metrics.roc_auc_score(
                     y_true=multilabel_binarizer.fit_transform(y_test.values),
-                    y_score=y_main_prob,
+                    y_score=y_prob,
                     average=average_curve,
                 )
             )
@@ -291,13 +270,13 @@ def main(
             _auprc.append(
                 metrics.average_precision_score(
                     y_true=multilabel_binarizer.fit_transform(y_test.values),
-                    y_score=y_main_prob,
+                    y_score=y_prob,
                     average=average_curve,
                 )
             )
             _f1_at_05.append(
                 metrics.f1_score(
-                    y_true=y_test.values, y_pred=y_main_pred, average=average_f1
+                    y_true=y_test.values, y_pred=y_pred, average=average_f1
                 )
             )
 
@@ -306,7 +285,6 @@ def main(
         losses_dict["auprc"].append(_auprc)
         losses_dict["f1_at_05"].append(_f1_at_05)
 
-    # save metrics
     with open(os.path.join(destination, "results.pkl"), "wb") as f:
         pickle.dump(obj=losses_dict, file=f)
 
