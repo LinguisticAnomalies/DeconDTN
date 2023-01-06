@@ -313,7 +313,7 @@ class NeuralModel:
             
             # get probabilities from logits
             probs = torch.sigmoid(logits)
-            print(probs.sum(1))
+        
             # get predictions from probabilities
             predictions = (probs >= 0.5).type(torch.LongTensor).detach().numpy()
             y_pred.append(predictions)
