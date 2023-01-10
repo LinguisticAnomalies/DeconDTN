@@ -7,7 +7,7 @@ import torch
 import transformers
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 from torch.utils.data import DataLoader
-from torch.optim import AdamW
+from transformers import AdamW
 from transformers import get_scheduler
 from torch.nn import BCEWithLogitsLoss
 from torch.nn.utils import clip_grad_norm_
@@ -310,10 +310,10 @@ class NeuralModel:
 
             # get logits
             logits = outputs.logits
-            
+
             # get probabilities from logits
             probs = torch.sigmoid(logits)
-        
+
             # get predictions from probabilities
             predictions = (probs >= 0.5).type(torch.LongTensor).detach().numpy()
             y_pred.append(predictions)

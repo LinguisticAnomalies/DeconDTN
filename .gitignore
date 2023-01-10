@@ -1,8 +1,10 @@
 # ignore list
-output/*
-notebooks/*
-src/__pycache__/*
-*/*.ipynb_checkpoints/*
+output
+notebooks
+src/__pycache__
+*/.ipynb_checkpoints
 tmp*
+
+runs_xiruo/.ipynb_checkpoints
 
 !notebooks/CORAAL_experiment.ipynb
