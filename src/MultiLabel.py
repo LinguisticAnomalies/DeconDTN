@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 
-# from tqdm import tqdm
+from tqdm.notebook import tqdm, trange
 
 import torch
 import transformers
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 from torch.utils.data import DataLoader
-from transformers import AdamW
+from torch.optim import AdamW
 from transformers import get_scheduler
 from torch.nn import BCEWithLogitsLoss
 from torch.nn.utils import clip_grad_norm_
@@ -61,7 +61,7 @@ class TransformerDataset(torch.utils.data.Dataset):
         return self.n
 
 
-class NeuralModel:
+class MultiLabel:
     def __init__(
         self,
         pretrained="bert-base-uncased",
@@ -234,7 +234,7 @@ class NeuralModel:
         self.loss_test_epochs = []
 
         # iterate over epochs
-        for epoch in range(self.num_epochs):
+        for epoch in trange(self.num_epochs, desc = "Training Epoch"):
             self.model.train()
 
             loss_epoch = 0

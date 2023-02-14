@@ -7,19 +7,19 @@ import torch
 import transformers
 from transformers import AutoModelForSequenceClassification, AutoConfig
 from torch.utils.data import DataLoader
-from transformers import AdamW
+from torch.optim import AdamW
 from transformers import get_scheduler
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
-from src.NeuralModel import TransformerDataset
-
+from src.MultiLabel import TransformerDataset
+from tqdm.notebook import trange
 transformers.logging.set_verbosity_error()
 
 # TODO: num_labels (1 or 2? how will it affect AutoModelForSequenceClassification in config),
 # calculate loss, criterion
 
 
-class NeuralSingleLabelModel:
+class MultiClassificationNN:
     def __init__(
         self,
         pretrained="bert-base-uncased",
@@ -107,8 +107,8 @@ class NeuralSingleLabelModel:
         self.model.train()
 
         # iterate over epochs
-        for epoch in range(self.num_epochs):
-
+        pbar = trange(self.num_epochs, desc = "Training Epoch")
+        for epoch in pbar:
             loss_epoch = 0
 
             # iterate over batches
@@ -189,7 +189,7 @@ class NeuralSingleLabelModel:
         self.loss_test_epochs = []
 
         # iterate over epochs
-        for epoch in range(self.num_epochs):
+        for epoch in trange(self.num_epochs, desc = "Training Epoch"):
             self.model.train()
 
             loss_epoch = 0
@@ -273,7 +273,7 @@ class NeuralSingleLabelModel:
             logits = outputs.logits
 
             # get probabilities from logits
-            softmax = torch.nn.Softmax(dim=1)
+            softmax = torch.nn.LogSoftmax(dim=1)
             probs = softmax(logits)
 
             # get predictions from probabilities

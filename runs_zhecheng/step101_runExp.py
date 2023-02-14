@@ -18,6 +18,8 @@ from src.utils import confoundSplitNumbers, confoundSplitDF
 from src.NeuralModel import NeuralModel
 from src.data_process import load_wls, load_adress
 
+## Use multilabel framework
+
 # Define experiment and load ingredients
 ex = Experiment()
 
@@ -33,7 +35,7 @@ def cfg():
     alpha_test = [0, 10, 0.1]  # np.arange(0, 10, 0.1)
     train_test_ratio = [4]
     n_test = [
-        150
+        100
     ]  # the number of testing examples; set to None to disable (i.e., get as many examples as possible)
     n_test_error = [0]
 
@@ -42,7 +44,7 @@ def cfg():
     rand_seed_np = 24
     rand_seed_torch = 187
 
-    num_labels = 1
+    num_labels = 4
 
     pretrained = "bert-base-uncased"
     device = "cuda:0"
@@ -56,7 +58,7 @@ def cfg():
 
     lr = 1e-5
     grad_norm = 1.0
-    balance_weights = False
+    balance_weights = True
 
     model_config = {}
     # model_config['model_type'] = model_type
@@ -72,7 +74,7 @@ def cfg():
     model_config["grad_norm"] = grad_norm
 
     # Create observers
-    destination = os.path.join("output", ex.path, proj_name)
+    destination = os.path.join("/home/sheng136/workspace/deDTN/code/DeconDTN/runs_zhecheng/output", ex.path, proj_name)
 
     if not os.path.exists(destination):
         os.makedirs(destination)
@@ -102,8 +104,9 @@ def main(
     alpha_test = np.arange(alpha_test[0], alpha_test[1], alpha_test[2])
 
     # ============= Load data
-    df_wls_merge = load_wls()
-    df_adress = load_adress()
+    df = pd.read_csv('/home/sheng136/workspace/deDTN/code/DeconDTN/notebooks_zhecheng/processed_db.csv')
+    df_wls = df[df['source'] == 'wls']
+    df_pitts = df[df['source'] == 'pitts']
 
     # ============= calculate valid_high_combination and valid_full_settings
     valid_high_combinations = []
@@ -119,10 +122,10 @@ def main(
         n_test_error,
     ):
         ret = confoundSplitNumbers(
-            df0=df_wls_merge,
-            df1=df_adress,
-            df0_label="label",
-            df1_label="label",
+            df0=df_wls,
+            df1=df_pitts,
+            df0_label="gender",
+            df1_label="gender",
             p_pos_train_z0=combination[0],
             p_pos_train_z1=combination[1],
             p_mix_z1=combination[2],
@@ -135,7 +138,7 @@ def main(
         if (
             (ret is not None)
             and (ret["n_df0_train_pos"] >= n_valid_high)
-        ):  # valie high combos
+        ):  # valid high combos
             valid_high_combinations.append(combination)
             valid_full_settings.append(ret)
 
@@ -148,7 +151,7 @@ def main(
     losses_dict["losses"] = []
     losses_dict["auroc"] = []
     losses_dict["auprc"] = []
-    losses_dict["f1_at_05"] = []
+    #losses_dict["f1_at_05"] = []
 
     random.seed(rand_seed_np)
     np.random.seed(rand_seed_np)
@@ -165,7 +168,7 @@ def main(
         losses = []
         _auroc = []
         _auprc = []
-        _f1_at_05 = []
+        #_f1_at_05 = []
 
         for i in range(5):
             _rand = random.randint(0, 1000)
@@ -176,8 +179,8 @@ def main(
             ret = confoundSplitDF(
                 df0=df_wls_merge,
                 df1=df_adress,
-                df0_label="label",
-                df1_label="label",
+                df0_label="gender",
+                df1_label="gender",
                 p_pos_train_z0=combination[0],
                 p_pos_train_z1=combination[1],
                 p_mix_z1=combination[2],
@@ -190,26 +193,26 @@ def main(
 
             df_train = pd.concat(
                 [
-                    ret["sample_df0_train"][["text", "label"]],
-                    ret["sample_df1_train"][["text", "label"]],
+                    ret["sample_df0_train"][["text", "gender"]],
+                    ret["sample_df1_train"][["text", "gender"]],
                 ],
                 ignore_index=True,
             )
 
             df_test = pd.concat(
                 [
-                    ret["sample_df0_test"][["text", "label"]],
-                    ret["sample_df1_test"][["text", "label"]],
+                    ret["sample_df0_test"][["text", "gender"]],
+                    ret["sample_df1_test"][["text", "gender"]],
                 ],
                 ignore_index=True,
             )
 
             X_train = df_train["text"]
-            y_train = df_train[["label"]]
-            print(y_train)
+            y_train = df_train[["gender"]]
+            # print(y_train)
             
             X_test = df_test["text"]
-            y_test = df_test[["label"]]
+            y_test = df_test[["gender"]]
 
             model = NeuralModel(**model_config)
 
@@ -224,21 +227,21 @@ def main(
             loss = torch.nn.BCELoss()
 
             _loss = loss(
-                torch.FloatTensor(y_prob.loc[:, 0]), torch.FloatTensor(y_test["label"])
+                torch.FloatTensor(y_prob.loc[:, 0]), torch.FloatTensor(y_test["gender"])
             )
 
             losses.append(_loss.item())
 
-            _auroc.append(metrics.roc_auc_score(y_true=y_test["label"], y_score=y_prob))
+            _auroc.append(metrics.roc_auc_score(y_true=y_test["gender"], y_score=y_prob))
             _auprc.append(
-                metrics.average_precision_score(y_true=y_test["label"], y_score=y_prob)
+                metrics.average_precision_score(y_true=y_test["gender"], y_score=y_prob)
             )
-            _f1_at_05.append(metrics.f1_score(y_true=y_test["label"], y_pred=y_pred))
+            #_f1_at_05.append(metrics.f1_score(y_true=y_test["gender"], y_pred=y_pred))
 
         losses_dict["losses"].append(losses)
         losses_dict["auroc"].append(_auroc)
         losses_dict["auprc"].append(_auprc)
-        losses_dict["f1_at_05"].append(_f1_at_05)
+        # losses_dict["f1_at_05"].append(_f1_at_05)
 
     with open(os.path.join(destination, "results.pkl"), "wb") as f:
         pickle.dump(obj=losses_dict, file=f)

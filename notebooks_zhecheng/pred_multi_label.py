@@ -18,7 +18,7 @@ import torch
 
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.NeuralModel import NeuralModel
+from src.MultiLabel import MultiLabel
 
 # define ingredient and experiments
 
@@ -28,7 +28,7 @@ from src.NeuralModel import NeuralModel
 def main(
     rand_seed_np = 2022,
     rand_seed_torch = 2022):
-    destination = '/home/sheng136/workspace/deDTN/code/DeconDTN/gender_pred/output'
+    destination = '/home/sheng136/workspace/deDTN/code/DeconDTN/runs_zhecheng/output'
     
     num_labels = 2
     
@@ -63,7 +63,7 @@ def main(
     
     
     # load data
-    df = pd.read_csv('/home/sheng136/workspace/deDTN//data/db/transcripts/healthy_cohort.csv')
+    df = pd.read_csv('/home/sheng136/workspace/deDTN/code/DeconDTN/notebooks_zhecheng/processed_db.csv')
     
     df = df.dropna(subset = ['gender','text'], how = 'any')
     
@@ -71,7 +71,7 @@ def main(
     le = LabelEncoder()
     df['source'] = le.fit_transform(df['source'])
 
-    df['gender'] = df['gender'].map({2:1, 1:0}).astype(np.int64)
+    #df['gender'] = df['gender'].map({2:1, 1:0}).astype(np.int64)
     
 
     
@@ -101,13 +101,13 @@ def main(
     X_test = df_test["text"]
     y_test = df_test[['gender', 'source']]
     
-    model = NeuralModel(**model_config)
+    model = MultiLabel(**model_config)
 
     model.load_pretrained()
 
     model.trainModel(X=X_train, y=y_train, device="cuda:0")
     y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
-    print(y_prob)
+    #print(y_prob)
 
     
     loss = torch.nn.BCELoss()

@@ -76,41 +76,48 @@ def confoundSplitNumbers(
 
     N_df0 = N_df0_pos + N_df0_neg
     N_df1 = N_df1_pos + N_df1_neg
-
-    n_df0_test_pos = math.floor(N_df0 / (train_test_ratio + 1))
+    
+    # Initial a start point
+    # N_test(Y = 1|Z=0) = N_train(Y = 1|Z=0) / 5
+    n_df0_test_pos = math.floor(N_df0_pos / (train_test_ratio + 1))
 
     while n_df0_test_pos > 0:
-
+        
+        # N_test(Y = 0, Z = 0) = N_test(Y = 1, Z = 0) * (P_test(Y = 0| Z = 0) / P_test(Y = 1| Z = 0))
         n_df0_test_neg = math.floor(
             n_df0_test_pos
             / mix_param_dict["p_pos_test_z0"]
             * (1 - mix_param_dict["p_pos_test_z0"])
         )
-
-        n_df0_train_pos = math.floor(
-            (n_df0_test_pos + n_df0_test_neg)
-            * train_test_ratio
-            * mix_param_dict["p_pos_train_z0"]
-        )
+        # N_train(Y = 0, Z = 0) = N_test(Z = 0) * train_test_ratio * P_train(Y = 0|Z = 0)
         n_df0_train_neg = math.floor(
             (n_df0_test_pos + n_df0_test_neg)
             * train_test_ratio
             * (1 - mix_param_dict["p_pos_train_z0"])
         )
-
+        
+        # N_train(Y = 1, Z = 0) = N(Y = 1, Z = 0) - N_test(Y = 1, Z = 0)
+        n_df0_train_pos = math.floor((n_df0_test_pos + n_df0_test_neg)  * train_test_ratio * mix_param_dict['p_pos_train_z0'])
+        
+        # N_test(Y = 1, Z = 1) = N(Y = 1, Z = 0) * alpha * (P(Z=1)/P(Z=0))
+        n_df1_test_pos = math.floor(mix_param_dict['alpha_test'] * mix_param_dict['C_z']/(1-mix_param_dict['C_z']) * n_df0_test_pos)
+        
+        # N_train(Z = 1) = N_train(Z = 0) * P(Z = 1)/P(Z = 0)
         n_df1_train = math.floor(
             mix_param_dict["C_z"]
             / (1 - mix_param_dict["C_z"])
             * (n_df0_train_pos + n_df0_train_neg)
         )
+        
+        # N_train(Y = 1, Z = 1) = N_train(Z = 1) * P(Y = 1 | Z = 1)
         n_df1_train_pos = math.floor(n_df1_train * mix_param_dict["p_pos_train_z1"])
-        n_df1_train_neg = math.floor(
-            n_df1_train * (1 - mix_param_dict["p_pos_train_z1"])
-        )
-
+        
+        # N_train(Y = 0, Z = 1) = N_train(Z = 1)  - N_train(Y = 1, Z = 1)
+        n_df1_train_neg = n_df1_train  - n_df1_train_pos
+        
         n_df1_test = math.floor(n_df1_train / train_test_ratio)
-        n_df1_test_pos = math.floor(n_df1_test * mix_param_dict["p_pos_test_z1"])
-        n_df1_test_neg = math.floor(n_df1_test * (1 - mix_param_dict["p_pos_test_z1"]))
+        
+        n_df1_test_neg = n_df1_test - n_df1_test_pos
 
         test1 = 0 < (n_df0_train_pos + n_df0_test_pos) <= N_df0_pos
         test2 = 0 < (n_df0_train_neg + n_df0_test_neg) <= N_df0_neg
@@ -160,6 +167,8 @@ def confoundSplitNumbers(
                 "n_df1_train_neg": n_df1_train_neg,
                 "n_df1_test_neg": n_df1_test_neg,
                 "mix_param_dict": mix_param_dict,
+                "n_train": n_df0_train_pos + n_df0_train_neg + n_df1_train_pos + n_df1_train_neg,
+                "n_test": n_df0_test_pos + n_df0_test_neg + n_df1_test_pos + n_df1_test_neg
             }
             if n_test is None:
                 return ret
@@ -298,3 +307,5 @@ def confoundSplitDF(
         "sample_df1_test": sample_df1_test,
         "stats": ret,
     }
+
+   
