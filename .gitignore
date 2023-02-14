@@ -5,4 +5,5 @@ src/__pycache__
 tmp*
 
 runs_xiruo/.ipynb_checkpoints
-
+notebook_zhecheng/*.tsv
+notebook_zhecheng/__pycache__*
