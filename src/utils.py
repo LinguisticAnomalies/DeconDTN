@@ -111,7 +111,8 @@ def number_split(p_pos_train_z1,
       ):
     """Get required number of samples for each category"""
     assert isinstance(train_test_ratio, int)
-
+    assert isinstance(n_test, int)
+    
     mix_param_dict = confoundSplit(
         p_pos_train_z0=p_pos_train_z0,
         p_pos_train_z1=p_pos_train_z1,
