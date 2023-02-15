@@ -209,7 +209,7 @@ def create_mix(df1, df0, target, setting, sample = False, seed = 2023):
     df_test = pd.concat([df0_test_pos, df0_test_neg, df1_test_pos, df1_test_neg], axis = 0, ignore_index=True)
     
     
-    return {'train':df_train, 'test':df_test}
+    return {'train':df_train, 'test':df_test, 'setting': setting}
 
 
 
@@ -272,10 +272,7 @@ def number_split(p_pos_train_z1,
             return ans
                
         else:
-            print("Invalid sample numbers ", "n_z1_neg_train:", ans["n_z1_neg_train"], 
-                     "n_z0_neg_train:", ans["n_z0_neg_train"], 
-                     "n_z1_neg_test:", ans["n_z1_neg_test"], 
-                     "n_z0_neg_test:", ans["n_z0_neg_test"])
+            print("Invalid sample numbers ", [(key, val) for key, val in ans.items() if key != 'mix_param_dict'])
             return None
     
     else:
