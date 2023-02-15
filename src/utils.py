@@ -1,5 +1,7 @@
 import math
 import pandas as pd
+from sklearn.model_selection import train_test_split
+
 
 def create_mix(df1, df0, target, setting, sample = False, seed = 2023):
     """ Create a mixture dataset from two source based on pre-set constraints"""
