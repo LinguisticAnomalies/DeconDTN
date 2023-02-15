@@ -1,8 +1,178 @@
 import math
 import pandas as pd
 
+def create_mix(df1, df0, target, setting, sample = False, seed = 2023):
+    """ Create a mixture dataset from two source based on pre-set constraints"""
+    n_total = len(df1) + len(df0)
+
+    # check if there is enough positive samples in each dataset
+    n_z0_pos = setting['n_z0_pos_train'] + setting['n_z0_pos_test']
+    n_z1_pos = setting['n_z1_pos_train'] + setting['n_z1_pos_test']
+    n_z0_neg = setting['n_z0_neg_train'] + setting['n_z0_neg_test']
+    n_z1_neg = setting['n_z1_neg_train'] + setting['n_z1_neg_test']
+
+    df0_pos = df0[df0[target] == 1]
+    df1_pos = df1[df1[target] == 1]
+
+
+    df0_neg = df0[df0[target] == 0]
+    df1_neg = df1[df1[target] == 0]
+
+
+    # for z0 positive
+    if n_z0_pos <= len(df0_pos):
+        df0_train_pos, df0_test_pos = train_test_split(df0_pos,
+                                                       train_size=setting['n_z0_pos_train'],
+                                                       test_size=setting['n_z0_pos_test'],
+                                                       shuffle = True, random_state=seed)
+    elif sample:
+        df0_pos_extra = df0_pos.sample(n = n_z0_pos - len(df0_pos), replace = True)
+        df0_pos_sampled = pd.concat([df0_pos,df0_pos_extra], axis = 0, ignore_index=True)
+        df0_train_pos, df0_test_pos = train_test_split(df0_pos_sampled,
+                                                       train_size=setting['n_z0_pos_train'],
+                                                       test_size=setting['n_z0_pos_test'],
+                                                       shuffle = True, random_state=seed)
+    else:
+        warn("Set sample equals to True or augment current dataset.")
+        return
+
+    # for z0 negative
+    if n_z0_neg <= len(df0_neg):
+        df0_train_neg, df0_test_neg = train_test_split(df0_neg,
+                                                       train_size=setting['n_z0_neg_train'],
+                                                       test_size=setting['n_z0_neg_test'],
+                                                       shuffle = True, random_state=seed)
+    elif sample:
+        df0_neg_extra = df0_neg.sample(n = n_z0_neg - len(df0_neg), replace = True)
+        df0_neg_sampled = pd.concat([df0_neg,df0_neg_extra], axis = 0, ignore_index=True)
+        df0_train_neg, df0_test_neg = train_test_split(df0_neg_sampled,
+                                                       train_size=setting['n_z0_neg_train'],
+                                                       test_size=setting['n_z0_neg_test'],
+                                                       shuffle = True, random_state=seed)
+    else:
+        warn("Set sample equals to True or augment current dataset.")
+        return
+
+
+
+    # for z1 positive
+    if n_z1_pos <= len(df1_pos):
+        df1_train_pos, df1_test_pos = train_test_split(df1_pos,
+                                                       train_size=setting['n_z1_pos_train'],
+                                                       test_size=setting['n_z1_pos_test'],
+                                                       shuffle = True, random_state=seed)
+    elif sample:
+        df1_pos_extra = df1_pos.sample(n = n_z1_pos - len(df1_pos), replace = True)
+        df1_pos_sampled = pd.concat([df1_pos,df1_pos_extra], axis = 0, ignore_index=True)
+        df1_train_pos, df1_test_pos = train_test_split(df1_pos_sampled,
+                                                       train_size=setting['n_z1_pos_train'],
+                                                       test_size=setting['n_z1_pos_test'],
+                                                       shuffle = True, random_state=seed)
+    else:
+        warn("Set sample equals to True or augment current dataset.")
+        return
+
+     # for z1 negative
+    if n_z1_neg <= len(df1_neg):
+        df1_train_neg, df1_test_neg = train_test_split(df1_neg,
+                                                       train_size=setting['n_z1_neg_train'],
+                                                       test_size=setting['n_z1_neg_test'],
+                                                       shuffle = True, random_state=seed)
+    elif sample:
+        df1_neg_extra = df1_neg.sample(n = n_z1_neg - len(df1_neg), replace = True)
+        df1_neg_sampled = pd.concat([df1_neg,df1_neg_extra], axis = 0, ignore_index=True)
+        df1_train_neg, df1_test_neg = train_test_split(df1_neg_sampled,
+                                                       train_size=setting['n_z1_neg_train'],
+                                                       test_size=setting['n_z1_neg_test'],
+                                                       shuffle = True, random_state=seed)
+    else:
+        warn("Set sample equals to True or augment current dataset.")
+        return
+
+
+    # assemble mixed train and test
+    df_train = pd.concat([df0_train_pos, df0_train_neg, df1_train_pos, df1_train_neg], axis = 0, ignore_index=True)
+    df_test = pd.concat([df0_test_pos, df0_test_neg, df1_test_pos, df1_test_neg], axis = 0, ignore_index=True)
+
+
+    return {'train':df_train, 'test':df_test, 'setting': setting}
+
+
+
+def number_split(p_pos_train_z1,
+    p_pos_train_z0,
+    p_mix_z1,
+    alpha_test,
+    train_test_ratio=5,
+    n_test = 100, # set the number for tests
+    verbose = True
+      ):
+    """Get required number of samples for each category"""
+    assert isinstance(train_test_ratio, int)
+
+    mix_param_dict = confoundSplit(
+        p_pos_train_z0=p_pos_train_z0,
+        p_pos_train_z1=p_pos_train_z1,
+        p_mix_z1=p_mix_z1,
+        alpha_test=alpha_test,
+    )
+
+    if all(0 < mix_param_dict[key] < 1 for key in mix_param_dict.keys() if key not in ['alpha_test','alpha_train']): # assert all probability between 0 and 1
+
+        n_train = n_test * train_test_ratio
+
+        n_z1_train = round(n_train * mix_param_dict["C_z"])
+        n_z1_test = round(n_test * mix_param_dict["C_z"])
+
+        n_z0_train = n_train - n_z1_train
+        n_z0_test = n_test - n_z1_test
+
+        n_z1_p_train = round(n_z1_train * mix_param_dict["p_pos_train_z1"])
+        n_z0_p_train = round(n_z0_train * mix_param_dict["p_pos_train_z0"])
+
+        n_z1_p_test = round(n_z1_test * mix_param_dict['p_pos_test_z1'])
+        n_z0_p_test = round(n_z0_test * mix_param_dict['p_pos_test_z0'])
+
+
+        n_z1_n_train = n_z1_train - n_z1_p_train
+        n_z0_n_train = n_z0_train - n_z0_p_train
+
+        n_z1_n_test = n_z1_test - n_z1_p_test
+        n_z0_n_test = n_z0_test - n_z0_p_test
+
+        ans = {
+                    "n_train": n_train,
+                    "n_test": n_test,
+                    "n_z0_pos_train": n_z0_p_train,
+                    "n_z0_neg_train": n_z0_n_train,
+                    "n_z0_pos_test": n_z0_p_test,
+                    "n_z0_neg_test": n_z0_n_test,
+                    "n_z1_pos_train": n_z1_p_train,
+                    "n_z1_neg_train": n_z1_n_train,
+                    "n_z1_pos_test": n_z1_p_test,
+                    "n_z1_neg_test": n_z1_n_test,
+                    "mix_param_dict": mix_param_dict
+                }
+
+        if all(ans[key] > 0 for key in ans.keys() if key != 'mix_param_dict'):
+
+            return ans
+
+        elif verbose:
+            print("Invalid sample numbers ", [(key, val) for key, val in ans.items() if key != 'mix_param_dict'])
+            return None
+
+    elif verbose:
+        print(f"Invalid test set probability P(Y=1|Z=0):{mix_param_dict['p_pos_test_z0']}, P(Y=1|Z=1):{mix_param_dict['p_pos_test_z1']}")
+
+    return None
+
+
+
+
 
 def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test):
+    """Calculate probability constraint given some priors"""
 
     assert 0 <= p_pos_train_z1 <= 1
     assert 0 <= p_pos_train_z0 <= 1
