@@ -19,7 +19,7 @@ From the 2018 paper, we could have the following table:
 | df1 | Y | e     | f    |
 |     | N | g     | h    |
 
-with the constraints:
+with the constraints: <a id="binary_contraint"></a>
 
 ```math
 \begin{align}
@@ -97,6 +97,78 @@ The basic use case example is:
     n_test_error = 0
 )
 ```
+
+
+### Multi-level Confounder (Z) and Multi-level Outcome (Y)
+
+First we start by examing constraints as in the binary setting, as in [binary-constraints](#binary_contraint). In the multi-level setting, this $\alpha_{test}$ becomes nontrivial to consolidate into a scalar value (this could be done as a vector where we compare everything to one). Thus, it could be better and simpler to just provide the full distribution before sampling:
+```math
+\begin{align}
+
+& P_{train}(Y|Z) \\
+& P_{test}(Y|Z) \\
+& P(Z)
+
+\end{align}
+```
+
+**Core function**: [`confoundSplitDFMultiLevel()`](src/utils.py)
+
+Load it as module. Currently, it works with only **TWO** data sources and **BINARY** outcome.
+
+- Input: Args:
+```
+df (pd.DataFrame): DataFrame, containing ALL data
+z_Categories (list): unique list for confounder (z) values
+y_Categories (list): unique list for outcome (y) values
+z_column (str): name of confounder column
+y_column (str): name of outcome column
+p_train_y_given_z (list or 2D-array): P_train(Y|Z): ordered as 2D-array/nested list, where each row represents one event of Z. NOTE: row sum == 1
+p_test_y_given_z (list or 2D-array): P_test(Y|Z). Same as p_train_y_given_z
+p_z (list or 1D-array): distribution of confounding variable z
+n_test (int, optional): number of examples in the testing set. Defaults to 100.
+n_error (int, optional): number for error (+/-) when there is no exact matching for n_test. Defaults to 0.
+train_test_ratio (int, optional): train:test number ratio. Defaults to 4.
+seed (int, optional): random seed for train_test_split. Defaults to 2671.
+```
+- Output:  df_collect: list of dictionaries, each of which is for one combination of y and z. For each:
+
+```python
+{"df_train":  # df_train
+ "df_test":   # df_test 
+ "y":         # distinct y values 
+ "z":         # distinct z values
+}
+```
+
+For clarification of `p_train_y_given_z` (and similar for `p_test_y_given_z`): refer to the following table:
+
+|   |                       | Y    |        |           |
+|---|-----------------------|------|--------|-----------|
+|   |                       | none | benign | malignant |
+| Z | Hospital A (P(z)=0.2) | 0.1  | 0.1    | 0.8       |
+|   | Hospital B (P(z)=0.2) | 0.2  | 0      | 0.8       |
+|   | Hospital C (P(z)=0.3) | 0.7  | 0.3    | 0         |
+|   | Hospital D (P(z)=0.3) | 0.3  | 0.3    | 0.4       |
+
+This table corresponds to:
+```python
+p_train_y_given_z = [[0.1, 0.1, 0.8], 
+                     [0.2, 0,   0.8], 
+                     [0.7, 0.3, 0  ],
+                     [0.3, 0.3, 0.4]
+                    ]
+
+p_z = [0.2, 0.2, 0.3, 0.3]
+```
+
+NOTE: the order of `y_Categories` and `z_Categories` must match with the corresponding orders in desired probability distributions. So in this case:
+```python
+z_Categories = ['Hosp_A','Hosp_B','Hosp_C', 'Hosp_D']
+y_Categories = ['none','benign', 'malignant']
+
+```
+
 
 ### Multiple Data Sources and Multi-class Outcome
 **TODO**
