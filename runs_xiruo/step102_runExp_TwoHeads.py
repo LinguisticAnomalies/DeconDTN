@@ -59,6 +59,7 @@ def cfg():
     lr = 1e-5
     grad_norm = 1.0
     balance_weights = False
+    grad_reverse = False
 
     model_config = {}
     # model_config['model_type'] = model_type
@@ -73,6 +74,7 @@ def cfg():
     model_config["lr"] = lr
     model_config["balance_weights"] = balance_weights
     model_config["grad_norm"] = grad_norm
+    model_config["grad_reverse"] = grad_reverse
 
     # Create observers
     destination = os.path.join("output", ex.path, proj_name)
@@ -242,6 +244,13 @@ def main(
                 os.path.join(destination_runs, "x_test.csv"),
                 index=False,
             )
+            y_test.to_csv(
+                os.path.join(destination_runs, "y_test.csv"),
+                index=False)
+            y_domain_test.to_csv(
+                os.path.join(destination_runs, "y_domain_test.csv"),
+                index=False
+            )
             y_main_pred.to_csv(
                 os.path.join(destination_runs, "y_main_pred.csv"),
                 index=False,
@@ -259,6 +268,8 @@ def main(
                 index=False,
             )
 
+
+            # TODO: move this out to make a standalone eval file
             # collect metrics: loss, auroc, auprc, f1
             loss = torch.nn.NLLLoss()
 

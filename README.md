@@ -103,13 +103,31 @@ The basic use case example is:
 
 ## Model Architectures
 
-### `NeuralModel`
-not very suitable in the setting of single label prediction. Old model, originally designed for multi-class multi-label prediction, using BCE loss.
+### 1. Base BERT (`AutoModelForSequenceClassification`)
+Model `NeuralSingleLabelModel()` from file [`NeuralSingleLabelModel.py`](src/NeuralSingleLabelModel.py). 
 
-### `NeuralSingleLabelModel`
 Multi-class single-label prediction framework. One prediction head. Base BERT structure.
 
-### `GradientReverseModel`
+
+### 2. Adversarial Model: Auxiliary Task Model (no gradient reverse)
+Model `GradientReverseModel()` from file [`AdversarialModel.py`](src/AdversarialModel.py)
+
 Multi-class single-label framework, with two predictions heads: main and secondary. For example, main could be Dementia ~ No Dementia, secondary could be Pitts ~ WLS.
 
-TODO: apply gradient reversal method!
+
+
+### 3. Adversarial Model: Auxiliary Task Model (Gradient Reverse)
+Model `GradientReverseModel()` from file [`AdversarialModel.py`](src/AdversarialModel.py)
+
+By adding a Gradient Reversal Layer between Feature layer and **domain** classifier layer, gradients from the **domain** classifier are then reversed (negated, i.e., $grad_{domain} = grad_{domain} \times (-1)$ ). But the gradients from the **main** classifier remains the same.
+
+Refer to the paper [Domain-Adversarial Training of Neural Networks](https://arxiv.org/abs/1505.07818).
+
+Code snippets credit to [this Pytorch discussion](https://discuss.pytorch.org/t/solved-reverse-gradients-in-backward-pass/3589).
+
+
+
+
+
+### (deprecated) `NeuralModel` 
+not very suitable in the setting of single label prediction. Old model, originally designed for multi-class multi-label prediction, using BCE loss.
