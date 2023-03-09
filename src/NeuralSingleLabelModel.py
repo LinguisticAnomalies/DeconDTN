@@ -50,6 +50,8 @@ class NeuralSingleLabelModel:
         self.problem_type = problem_type
         self.model = None
 
+        self.trainEpochLossAvg = []
+
     def load_pretrained(self):
 
         # load pretrained model
@@ -110,7 +112,7 @@ class NeuralSingleLabelModel:
         for epoch in range(self.num_epochs):
 
             loss_epoch = 0
-
+            n_train = 0
             # iterate over batches
             for batch in dataloader:
 
@@ -127,12 +129,16 @@ class NeuralSingleLabelModel:
                 clip_grad_norm_(self.model.parameters(), self.grad_norm)
 
                 # update loss plot
-                loss_epoch += loss.item()
+                loss_epoch += loss.item() * len(batch)
+                n_train += len(batch)
 
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
                 # progress_bar.update(1)
+
+            self.trainEpochLossAvg.append(loss_epoch/n_train)
+
 
     def trainModelWithTest(self, X, y, X_test, y_test, device=None):
 
