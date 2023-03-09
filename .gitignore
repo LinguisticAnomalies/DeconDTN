@@ -3,6 +3,6 @@ output
 src/__pycache__
 */.ipynb_checkpoints
 tmp*
-
+data
 runs_xiruo/.ipynb_checkpoints
 
