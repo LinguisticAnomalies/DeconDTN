@@ -12,7 +12,7 @@ from transformers import get_scheduler
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
 from src.MultiLabel import TransformerDataset
-from tqdm.notebook import trange, tqdm
+from tqdm import trange, tqdm
 transformers.logging.set_verbosity_error()
 
 # TODO: num_labels (1 or 2? how will it affect AutoModelForSequenceClassification in config),
@@ -109,7 +109,7 @@ class BinaryClassificationNN:
         self.model.train()
 
         # iterate over epochs
-        for epoch in range(self.num_epochs):
+        for epoch in trange(self.num_epochs, desc = "Training..."):
 
             loss_epoch = 0
 

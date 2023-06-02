@@ -218,10 +218,12 @@ def number_split(p_pos_train_z1,
     p_mix_z1,
     alpha_test,
     train_test_ratio=5,
-    n_test = 100 # set the number for tests
+    n_test = 100, # set the number for tests
+    verbose = True
       ):
     """Get required number of samples for each category"""
     assert isinstance(train_test_ratio, int)
+    assert isinstance(n_test, int)
     
     mix_param_dict = confoundSplit(
         p_pos_train_z0=p_pos_train_z0,
@@ -229,9 +231,9 @@ def number_split(p_pos_train_z1,
         p_mix_z1=p_mix_z1,
         alpha_test=alpha_test,
     )
-    
+
     if all(0 < mix_param_dict[key] < 1 for key in mix_param_dict.keys() if key not in ['alpha_test','alpha_train']): # assert all probability between 0 and 1
-        
+
         n_train = n_test * train_test_ratio
 
         n_z1_train = round(n_train * mix_param_dict["C_z"])
@@ -266,20 +268,19 @@ def number_split(p_pos_train_z1,
                     "n_z1_neg_test": n_z1_n_test,
                     "mix_param_dict": mix_param_dict
                 }
-        
+
         if all(ans[key] > 0 for key in ans.keys() if key != 'mix_param_dict'):
-            
+
             return ans
-               
-        else:
+
+        elif verbose:
             print("Invalid sample numbers ", [(key, val) for key, val in ans.items() if key != 'mix_param_dict'])
             return None
-    
-    else:
-        #print(mix_param_dict)
+
+    elif verbose:
         print(f"Invalid test set probability P(Y=1|Z=0):{mix_param_dict['p_pos_test_z0']}, P(Y=1|Z=1):{mix_param_dict['p_pos_test_z1']}")
-    
-    return None    
+
+    return 
 
 
 
