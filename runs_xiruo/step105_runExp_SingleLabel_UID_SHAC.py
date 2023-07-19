@@ -3,23 +3,28 @@ import os
 import random
 import itertools
 import pickle
+from sklearn import metrics
+from sklearn.preprocessing import MultiLabelBinarizer
 from tqdm.auto import tqdm
 
 import pandas as pd
 import numpy as np
 import torch
+from transformers import AutoTokenizer
 
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from src.utils import confoundSplitNumbers, confoundSplitDF
 from src.utils import number_split, create_mix
 from src.NeuralSingleLabelModel import NeuralSingleLabelModel
 
 # from src.data_process import load_wls, load_adress
 from src.process_SHAC import load_process_SHAC
 import warnings
-warnings.simplefilter('ignore')
+
+warnings.simplefilter("ignore")
 
 # Define experiment and load ingredients
 ex = Experiment()
@@ -106,12 +111,16 @@ def main(
     # ============= Load data
     # df_wls_merge = load_wls()
     # df_adress = load_adress()
-    df = load_process_SHAC(replaceNA='all')
+    df = load_process_SHAC(replaceNA="all")
 
     df0 = df.query("location == 'uw'").reset_index(drop=True)
     df1 = df.query("location == 'mimic'").reset_index(drop=True)
     label = "Drug"
     txt_col = "text"
+
+    domain_col = "location"
+    z_Categories = ["uw", "mimic"]
+
     # ============= calculate valid_high_combination and valid_full_settings
     theory_valid_full_settings = []
     for combination in itertools.product(
@@ -213,13 +222,48 @@ def main(
             X_test = dfs["test"][txt_col]
             y_test = dfs["test"][[label]]
 
+            # Append UID to the text, length of 5
+            tokenizer = AutoTokenizer.from_pretrained(
+                model_config["pretrained"], use_auth_token=True, local_files_only=True
+            )
+
+            uid_dict = {}
+            for _t in z_Categories:
+                _uid = " ".join(
+                    tokenizer.convert_ids_to_tokens(
+                        np.random.randint(1000, len(tokenizer), 5),
+                        skip_special_tokens=True,
+                    )
+                )
+                _idx = dfs["train"][domain_col] == _t
+                X_train[_idx] = _uid + X_train[_idx]
+                uid_dict[_t] = _uid
+
+            p_z = {}
+            for _z in z_Categories:
+                p_z[_z] = sum(dfs["train"][domain_col] == _z) / len(dfs["train"])
+
             model = NeuralSingleLabelModel(**model_config)
 
             model.load_pretrained()
 
+
+
             model.trainModel(X=X_train, y=y_train, device="cuda:0")
 
-            y_pred, y_prob = model.predict(X=X_test, device="cuda:0")
+            # ============ Prediction: two steps
+            # Predict-1: get counterfactural probs
+            y_main_prob_ls = {}
+            for _t in z_Categories:
+                X_test_uid = uid_dict[_t] + X_test
+                _pred, _prob = model.predict(X=X_test_uid, device="cuda:0")
+                y_main_prob_ls[_t] = _prob
+
+            # Predict-2: merge counterfactural probs
+            y_main_probs = np.empty((len(X_test), _prob.shape[1]))
+            y_main_probs.fill(0)
+            for _t in z_Categories:
+                y_main_probs += y_main_prob_ls[_t] * p_z[_t]
 
             # save predictions
             destination_runs = os.path.join(
@@ -237,11 +281,11 @@ def main(
                 os.path.join(destination_runs, "y_test.csv"),
                 index=False,
             )
-            y_pred.to_csv(
-                os.path.join(destination_runs, "y_pred.csv"),
-                index=False,
-            )
-            y_prob.to_csv(
+            # y_pred.to_csv(
+            #     os.path.join(destination_runs, "y_pred.csv"),
+            #     index=False,
+            # )
+            y_main_probs.to_csv(
                 os.path.join(destination_runs, "y_prob.csv"),
                 index=False,
             )

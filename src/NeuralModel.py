@@ -21,7 +21,9 @@ class TransformerDataset(torch.utils.data.Dataset):
     ):
 
         # load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(pretrained, use_auth_token=True)
+        tokenizer = AutoTokenizer.from_pretrained(pretrained, use_auth_token=True, 
+                                                #   local_files_only=True
+                                                  )
 
         X = list(X)
 

@@ -56,7 +56,9 @@ class NeuralSingleLabelModel:
 
         # load pretrained model
         # load default configuration
-        config = AutoConfig.from_pretrained(self.pretrained, use_auth_token=True)
+        config = AutoConfig.from_pretrained(self.pretrained, use_auth_token=True, 
+                                            # local_files_only=True
+                                            )
 
         # update default configuration
         config.problem_type = self.problem_type
@@ -65,7 +67,8 @@ class NeuralSingleLabelModel:
 
         # instantiate model
         self.model = AutoModelForSequenceClassification.from_pretrained(
-            self.pretrained, config=config, use_auth_token=True
+            self.pretrained, config=config, use_auth_token=True,
+            # local_files_only=True
         )
 
     def trainModel(self, X, y, device=None):

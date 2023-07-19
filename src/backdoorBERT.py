@@ -12,14 +12,58 @@ from transformers import get_scheduler
 # from torch.nn import BCEWithLogitsLoss
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
-from NeuralModel import TransformerDataset
 
 import transformers
 from transformers import BertModel
-
+from transformers import AutoTokenizer
 
 transformers.logging.set_verbosity_error()
 
+
+class TransformerDataset(torch.utils.data.Dataset):
+    def __init__(
+        self, X, y=None, z=None, pretrained="bert-base-uncased", max_length=50
+    ):
+
+        # load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(pretrained, use_auth_token=True, local_files_only=True)
+
+        X = list(X)
+
+        self.n = len(X)
+
+        # generate word piece ids
+        self.encodings = tokenizer(
+            X, padding=True, truncation=True, max_length=max_length, return_tensors="pt"
+        )
+
+        if y is not None:
+            assert len(X) == len(y)
+            assert isinstance(y, pd.DataFrame)
+            self.labels = torch.FloatTensor(y.values)
+        else:
+            self.labels = None
+
+        if z is not None:
+            assert len(X) == len(z)
+            assert isinstance(z, pd.DataFrame)
+            self.z = torch.FloatTensor(z.values)
+        else:
+            self.z = None
+
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encodings.items()}
+
+        if self.labels is not None:
+            item["labels"] = self.labels[idx]
+
+        if self.z is not None:
+            item["z"] = self.z[idx]
+
+        return item
+
+    def __len__(self):
+        return self.n
 
 class baseModel(torch.nn.Module):
     def __init__(
@@ -44,6 +88,8 @@ class baseModel(torch.nn.Module):
        
        
     def forward(self, input_ids, token_type_ids, attention_mask, confound_dummies):
+
+
         outputs_bert = self.bert(input_ids, token_type_ids, attention_mask)
 
         outputs_pooler = outputs_bert["pooler_output"]
@@ -52,7 +98,7 @@ class baseModel(torch.nn.Module):
 
         outputs_extend_confounds = torch.cat([outputs_pooler, confound_dummies], 1)
 
-        outputs_main_classifier = self.main_classifier_layer(outputs_pooler)  #shape: (N, 2)
+        outputs_main_classifier = self.main_classifier_layer(outputs_extend_confounds)  #shape: (N, 2)
 
 
 
@@ -65,6 +111,8 @@ class baseModel(torch.nn.Module):
 class backdoorAdjustBERTModel:
     def __init__(
         self,
+        zcol,
+        n_zCats,
         pretrained="bert-base-uncased",
         max_length=50,
         num_labels=2,
@@ -75,6 +123,9 @@ class backdoorAdjustBERTModel:
         lr=5e-5,
         balance_weights=False,
         grad_norm=1.0,
+        grad_reverse=False,
+        v=1,
+        p_z=None,
         
     ):
 
@@ -95,6 +146,8 @@ class backdoorAdjustBERTModel:
         self.pretrained = pretrained
         self.max_length = max_length
         self.num_labels = num_labels
+        self.zcol = zcol
+        self.n_zCats = n_zCats
         self.hidden_dropout_prob = hidden_dropout_prob
         self.num_epochs = num_epochs
         self.num_warmup_steps = num_warmup_steps
@@ -103,6 +156,8 @@ class backdoorAdjustBERTModel:
         self.balance_weights = balance_weights
         self.grad_norm = grad_norm
         self.model = None
+        self.v = v
+        self.p_z = p_z
 
         self.trainMainEpochLossAvg = []
 
@@ -113,11 +168,12 @@ class backdoorAdjustBERTModel:
         # instantiate model
         self.model = baseModel(
             num_labels=self.num_labels,
+            num_zCats=self.n_zCats,
             pretrained=self.pretrained,
             hidden_dropout_prob=self.hidden_dropout_prob,
         )
 
-    def trainModel(self, X, y, device=None):
+    def trainModel(self, X, y, z, device=None):
         """_summary_
 
         Args:
@@ -129,6 +185,7 @@ class backdoorAdjustBERTModel:
         dataset = TransformerDataset(
             X=X,
             y=y,
+            z=z,
             pretrained=self.pretrained,
             max_length=self.max_length,
         )
@@ -183,6 +240,7 @@ class backdoorAdjustBERTModel:
                     input_ids=batch["input_ids"],
                     token_type_ids=batch["token_type_ids"],
                     attention_mask=batch["attention_mask"],
+                    confound_dummies=batch["z"],
                 )
 
                 # calculate custom loss
@@ -208,191 +266,213 @@ class backdoorAdjustBERTModel:
                 # progress_bar.update(1)
 
             self.trainMainEpochLossAvg.append(loss_epoch_main/n_train)
-           
-    def trainModelWithTest(
-        self, X, y, X_test, y_test, device=None
-    ):
 
-        dataset = TransformerDataset(
-            X=X,
-            y=y,
-            pretrained=self.pretrained,
-            max_length=self.max_length,
-        )
 
-        dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size)
+        
+                
+    # def trainModelWithTest(
+    #     self, X, y, X_test, y_test, device=None
+    # ):
 
-        dataset_test = TransformerDataset(
-            X=X_test,
-            y=y_test,
-            pretrained=self.pretrained,
-            max_length=self.max_length,
-        )
+    #     dataset = TransformerDataset(
+    #         X=X,
+    #         y=y,
+    #         pretrained=self.pretrained,
+    #         max_length=self.max_length,
+    #     )
 
-        dataloader_test = DataLoader(
-            dataset_test, shuffle=False, batch_size=self.batch_size
-        )
+    #     dataloader = DataLoader(dataset, shuffle=True, batch_size=self.batch_size)
 
-        self.model.to(device)
-        # logging.info(f"Model:\n{self.model}")
+    #     dataset_test = TransformerDataset(
+    #         X=X_test,
+    #         y=y_test,
+    #         pretrained=self.pretrained,
+    #         max_length=self.max_length,
+    #     )
 
-        # define optimizer
-        optimizer = AdamW(self.model.parameters(), lr=self.lr)
+    #     dataloader_test = DataLoader(
+    #         dataset_test, shuffle=False, batch_size=self.batch_size
+    #     )
 
-        # create scheduler
-        num_training_steps = self.num_epochs * len(dataloader)
+    #     self.model.to(device)
+    #     # logging.info(f"Model:\n{self.model}")
 
-        lr_scheduler = get_scheduler(
-            "linear",
-            optimizer=optimizer,
-            num_warmup_steps=self.num_warmup_steps,
-            num_training_steps=num_training_steps,
-        )
+    #     # define optimizer
+    #     optimizer = AdamW(self.model.parameters(), lr=self.lr)
 
-        if self.balance_weights:
-            class_weights = len(y) / y.sum(axis=0)
-            class_weights = class_weights.to_list()
-            class_weights = [min(w, 10000) for w in class_weights]
-        else:
-            class_weights = [1.0] * self.num_labels
+    #     # create scheduler
+    #     num_training_steps = self.num_epochs * len(dataloader)
 
-        criterion = CrossEntropyLoss(weight=torch.tensor(class_weights, device=device))
-        criterion_test = CrossEntropyLoss()
+    #     lr_scheduler = get_scheduler(
+    #         "linear",
+    #         optimizer=optimizer,
+    #         num_warmup_steps=self.num_warmup_steps,
+    #         num_training_steps=num_training_steps,
+    #     )
 
-        # progress_bar = tqdm(range(num_training_steps))
+    #     if self.balance_weights:
+    #         class_weights = len(y) / y.sum(axis=0)
+    #         class_weights = class_weights.to_list()
+    #         class_weights = [min(w, 10000) for w in class_weights]
+    #     else:
+    #         class_weights = [1.0] * self.num_labels
 
-        self.loss_epochs = []
-        self.loss_steps = []
-        self.loss_test_main_epochs = []
-        self.loss_test_total_epochs = []
+    #     criterion = CrossEntropyLoss(weight=torch.tensor(class_weights, device=device))
+    #     criterion_test = CrossEntropyLoss()
 
-        # iterate over epochs
-        for epoch in range(self.num_epochs):
-            self.model.train()
+    #     # progress_bar = tqdm(range(num_training_steps))
 
-            loss_epoch = 0
+    #     self.loss_epochs = []
+    #     self.loss_steps = []
+    #     self.loss_test_main_epochs = []
+    #     self.loss_test_total_epochs = []
+
+    #     # iterate over epochs
+    #     for epoch in range(self.num_epochs):
+    #         self.model.train()
+
+    #         loss_epoch = 0
+
+    #         # iterate over batches
+    #         for batch in dataloader:
+
+    #             batch = {k: v.to(device) for k, v in batch.items()}
+
+    #             outputs_all = self.model(
+    #                 input_ids=batch["input_ids"],
+    #                 token_type_ids=batch["token_type_ids"],
+    #                 attention_mask=batch["attention_mask"],
+    #             )
+
+    #             # calculate custom loss
+    #             loss = criterion(
+    #                 outputs_all["outputs_main_classifier"],
+    #                 batch["labels"].squeeze(1).type(torch.long),)
+               
+
+    #             # back propagate loss and clip gradients
+    #             self.loss_steps.append(loss.item())
+    #             loss.backward()
+    #             clip_grad_norm_(self.model.parameters(), self.grad_norm)
+
+    #             # update loss plot
+    #             loss_epoch += loss.item()
+
+    #             optimizer.step()
+    #             lr_scheduler.step()
+    #             optimizer.zero_grad()
+    #             # progress_bar.update(1)
+
+    #         self.loss_epochs.append(loss_epoch)
+
+    #         # test loss
+    #         self.model.eval()
+
+    #         loss_test_main_epoch = 0
+
+
+    #         with torch.no_grad():
+    #             for batch in dataloader_test:
+
+    #                 batch = {k: v.to(device) for k, v in batch.items()}
+
+    #                 outputs_all = self.model(
+    #                     input_ids=batch["input_ids"],
+    #                     token_type_ids=batch["token_type_ids"],
+    #                     attention_mask=batch["attention_mask"],
+    #                 )
+
+    #                 # calculate custom loss
+    #                 loss_test_main = criterion(
+    #                     outputs_all["outputs_main_classifier"],
+    #                     batch["labels"].squeeze(1).type(torch.long),
+    #                 )
+
+
+    #                 loss_test_main_epoch += loss_test_main.item()
+                   
+
+    #         self.loss_test_main_epochs.append(loss_test_main_epoch)
+        
+
+    def predict(self, X, z, device=None):
+
+
+        y_main_prob_ls = []
+
+        for i in range(self.n_zCats):
+            a = np.empty((len(X), self.n_zCats))
+            a.fill(0)
+            a[:,i] = self.v
+            
+            a = pd.DataFrame(a)
+            a.columns = z.columns
+
+            dataset = TransformerDataset(
+                X=X,
+                z=a,
+                pretrained=self.pretrained,
+                max_length=self.max_length,
+            )
+
+            dataloader = DataLoader(dataset, shuffle=False, batch_size=self.batch_size)
+
+
+            self.model.to(device)
+            # logging.info(f"Model:\n{self.model}")
+
+            # progress_bar = tqdm(range(len(dataloader)))
+
+            self.model.eval()
+
+            y_main_prob_counterfactual = []
 
             # iterate over batches
             for batch in dataloader:
 
                 batch = {k: v.to(device) for k, v in batch.items()}
 
-                outputs_all = self.model(
-                    input_ids=batch["input_ids"],
-                    token_type_ids=batch["token_type_ids"],
-                    attention_mask=batch["attention_mask"],
-                )
-
-                # calculate custom loss
-                loss = criterion(
-                    outputs_all["outputs_main_classifier"],
-                    batch["labels"].squeeze(1).type(torch.long),)
-               
-
-                # back propagate loss and clip gradients
-                self.loss_steps.append(loss.item())
-                loss.backward()
-                clip_grad_norm_(self.model.parameters(), self.grad_norm)
-
-                # update loss plot
-                loss_epoch += loss.item()
-
-                optimizer.step()
-                lr_scheduler.step()
-                optimizer.zero_grad()
-                # progress_bar.update(1)
-
-            self.loss_epochs.append(loss_epoch)
-
-            # test loss
-            self.model.eval()
-
-            loss_test_main_epoch = 0
-
-
-            with torch.no_grad():
-                for batch in dataloader_test:
-
-                    batch = {k: v.to(device) for k, v in batch.items()}
-
+                with torch.no_grad():
                     outputs_all = self.model(
                         input_ids=batch["input_ids"],
                         token_type_ids=batch["token_type_ids"],
                         attention_mask=batch["attention_mask"],
+                        confound_dummies=batch["z"],
                     )
 
-                    # calculate custom loss
-                    loss_test_main = criterion(
-                        outputs_all["outputs_main_classifier"],
-                        batch["labels"].squeeze(1).type(torch.long),
-                    )
+                # get logits
+                logits_main = outputs_all["outputs_main_classifier"]
 
 
-                    loss_test_main_epoch += loss_test_main.item()
-                   
-
-            self.loss_test_main_epochs.append(loss_test_main_epoch)
-        
-
-    def predict(self, X, device=None):
-
-        dataset = TransformerDataset(
-            X=X,
-            pretrained=self.pretrained,
-            max_length=self.max_length,
-        )
-
-        dataloader = DataLoader(dataset, shuffle=False, batch_size=self.batch_size)
-
-        self.model.to(device)
-        # logging.info(f"Model:\n{self.model}")
-
-        # progress_bar = tqdm(range(len(dataloader)))
-
-        self.model.eval()
-
-        y_main_pred = []
-        y_main_prob = []
-
-       
-
-        # iterate over batches
-        for batch in dataloader:
-
-            batch = {k: v.to(device) for k, v in batch.items()}
-
-            with torch.no_grad():
-                outputs_all = self.model(
-                    input_ids=batch["input_ids"],
-                    token_type_ids=batch["token_type_ids"],
-                    attention_mask=batch["attention_mask"],
-                )
-
-            # get logits
-            logits_main = outputs_all["outputs_main_classifier"]
+                # get probabilities from logits
+                softmax = torch.nn.Softmax(dim=1)
+                probs_main = softmax(logits_main)
 
 
-            # get probabilities from logits
-            softmax = torch.nn.Softmax(dim=1)
-            probs_main = softmax(logits_main)
+                # get predictions from probabilities
+
+                y_main_prob_counterfactual.append(probs_main.cpu().detach().numpy())
 
 
-            # get predictions from probabilities
-            predictions_main = probs_main.max(axis=1).indices.cpu().detach().numpy()
-            y_main_pred.append(predictions_main)
-            y_main_prob.append(probs_main.cpu().detach().numpy())
+                # progress_bar.update(1)
+
+            # concatenate predictions
+            y_main_prob_counterfactual = np.concatenate(y_main_prob_counterfactual, axis=0)
+
+            y_main_prob_ls.append(y_main_prob_counterfactual)
 
 
-            # progress_bar.update(1)
-
-        # concatenate predictions
-        y_main_pred = np.concatenate(y_main_pred, axis=0)
-        y_main_prob = np.concatenate(y_main_prob, axis=0)
 
         # package predictions in data frame
         # y_main_pred = pd.DataFrame(y_main_pred, columns=self.labels)
         # y_main_prob = pd.DataFrame(y_main_prob, columns=self.labels)
-        y_main_pred = pd.DataFrame(y_main_pred)
-        y_main_prob = pd.DataFrame(y_main_prob)
+        y_main_probs = np.empty((len(X), probs_main.shape[1]))
+        y_main_probs.fill(0)
+    
 
-        return y_main_pred, y_main_prob
+        for i in range(self.n_zCats):
+            y_main_probs += y_main_prob_ls[i] * self.p_z[i]
+
+        y_main_probs = pd.DataFrame(y_main_probs)
+        
+        return y_main_probs

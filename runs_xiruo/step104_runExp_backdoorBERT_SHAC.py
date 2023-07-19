@@ -3,8 +3,8 @@ import os
 import random
 import itertools
 import pickle
-from sklearn import metrics
-from sklearn.preprocessing import MultiLabelBinarizer
+import copy
+
 from tqdm.auto import tqdm
 
 import pandas as pd
@@ -15,13 +15,16 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.utils import confoundSplitNumbers, confoundSplitDF
 from src.utils import number_split, create_mix
 from src.backdoorBERT import backdoorAdjustBERTModel
 
 # from src.data_process import load_wls_adress_AddDomain
 from src.process_SHAC import load_process_SHAC
 
+
+import warnings
+
+warnings.simplefilter("ignore")
 # Define experiment and load ingredients
 ex = Experiment()
 
@@ -39,14 +42,16 @@ def cfg():
     n_test = [
         150
     ]  # the number of testing examples; set to None to disable (i.e., get as many examples as possible)
-
+    v = 1
     n_valid_high = 10
 
-    rand_seed_np = 24
-    rand_seed_torch = 187
+    rand_seed = 34
+    # rand_seed_np = 24
+    # rand_seed_torch = 187
 
     num_labels = 2
-    
+    # zcol = None
+    # zCats = None
 
     pretrained = "bert-base-uncased"
     device = "cuda:0"
@@ -62,9 +67,13 @@ def cfg():
     balance_weights = False
     grad_reverse = False
 
+    # assert zcol is not None
+    # assert zCats is not None
     model_config = {}
     # model_config['model_type'] = model_type
     model_config["pretrained"] = pretrained
+    # model_config["zcol"] = zcol
+    # model_config['zCats'] = zCats
     model_config["max_length"] = max_length
     model_config["num_labels"] = num_labels
     model_config["hidden_dropout_prob"] = hidden_dropout_prob
@@ -98,8 +107,8 @@ def main(
     train_test_ratio,
     n_test,
     n_valid_high,
-    rand_seed_np,
-    rand_seed_torch,
+    v,
+    rand_seed,
     device,
 ):
 
@@ -111,19 +120,28 @@ def main(
     df = load_process_SHAC(replaceNA="all")
     label = "Drug"
     txt_col = "text"
-    z_Categories = ["uw","mimic"]
+    z_Categories = ["uw", "mimic"]
     n_zCats = len(z_Categories)
 
     domain_col = "location"
-    v = 1
 
-    tmp = pd.get_dummies(pd.Categorical(df[domain_col], categories=z_Categories), prefix="confounder") * v
-    df = pd.concat([df,tmp], axis=1)
+    tmp = (
+        pd.get_dummies(
+            pd.Categorical(df[domain_col], categories=z_Categories), prefix="confounder"
+        )
+        * v
+    )
+    df = pd.concat([df, tmp], axis=1)
 
     df0 = df.query(f"location == '{z_Categories[0]}'").reset_index(drop=True)
     df1 = df.query(f"location == '{z_Categories[1]}'").reset_index(drop=True)
 
-    confounder_cols = ["confounder_"+x for x in z_Categories]
+    confounder_cols = ["confounder_" + x for x in z_Categories]
+
+    model_config = copy.deepcopy(model_config)
+    model_config["zcol"] = domain_col
+    model_config["n_zCats"] = n_zCats
+    model_config["v"] = v
 
     # ============= calculate valid_high_combination and valid_full_settings
     theory_valid_full_settings = []
@@ -165,7 +183,10 @@ def main(
     # losses_dict["auprc"] = []
     # losses_dict["f1_at_05"] = []
 
-    random.seed(rand_seed_np)
+    random.seed(rand_seed)
+    rand_seed_np = random.randint(0, 9999)
+    rand_seed_torch = random.randint(0, 9999)
+
     np.random.seed(rand_seed_np)
     torch.manual_seed(rand_seed_torch)
     torch.cuda.manual_seed(rand_seed_torch)
@@ -218,14 +239,19 @@ def main(
             )
 
             assert dfs is not None
-        
+
             X_train = dfs["train"][txt_col]
             y_train = dfs["train"][[label]]
-            x_confounder_train = dfs["train"][confounder_cols]]
+            x_confounder_train = dfs["train"][confounder_cols]
 
             X_test = dfs["test"][txt_col]
             y_test = dfs["test"][[label]]
-            x_confounder_test = dfs["test"][confounder_cols]]
+            x_confounder_test = dfs["test"][confounder_cols]
+
+            p_z = []
+            for _z in z_Categories:
+                p_z.append(sum(dfs["train"][domain_col] == _z) / len(dfs["train"]))
+            model_config["p_z"] = p_z
 
             # == Modeling Start
             model = backdoorAdjustBERTModel(**model_config)
@@ -233,13 +259,9 @@ def main(
             model.load_pretrained()
 
             # train & predict
-            model.trainModel(
-                X=X_train, y=y_train, device=device
-            )
+            model.trainModel(X=X_train, y=y_train, z=x_confounder_train, device=device)
 
-            y_main_pred, y_main_prob = model.predict(
-                X=X_test, device=device
-            )
+            y_main_prob = model.predict(X=X_test, z=x_confounder_test, device=device)
 
             # save predictions
             destination_runs = os.path.join(
@@ -254,27 +276,17 @@ def main(
                 index=False,
             )
             y_test.to_csv(os.path.join(destination_runs, "y_test.csv"), index=False)
-            y_domain_test.to_csv(
-                os.path.join(destination_runs, "y_domain_test.csv"), index=False
-            )
-            y_main_pred.to_csv(
-                os.path.join(destination_runs, "y_main_pred.csv"),
-                index=False,
-            )
+
             y_main_prob.to_csv(
                 os.path.join(destination_runs, "y_main_prob.csv"),
                 index=False,
             )
-  
-  
+
             # save Epoch Loss Avg
             main_loss_epoch_avg = model.trainMainEpochLossAvg
             pd.DataFrame({"main_loss_epoch_avg": np.array(main_loss_epoch_avg)}).to_csv(
                 os.path.join(destination_runs, "main_loss_epoch_avg.csv"), index=False
             )
-            
-            
-
 
             # TODO: move this out to make a standalone eval file
             # collect metrics: loss, auroc, auprc, f1

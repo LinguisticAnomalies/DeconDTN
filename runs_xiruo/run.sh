@@ -67,13 +67,33 @@
 #     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[150]
 
 # Two Heads model: Grad Reverse
-python3 runs_xiruo/step102_runExp_TwoHeads_SHAC.py with \
-    proj_name="exp_GradientReversal_SHAC_05_02" grad_reverse=True\
-    pretrained="bert-base-uncased" \
-    p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[150]
+# python3 runs_xiruo/step102_runExp_TwoHeads_SHAC.py with \
+#     proj_name="exp_GradientReversal_SHAC_05_02" grad_reverse=True\
+#     pretrained="bert-base-uncased" \
+#     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[150]
 
 # Two Heads model, auxilliary task
-python3 runs_xiruo/step102_runExp_TwoHeads_SHAC.py with \
-    proj_name="exp_TwoHeads_SHAC_05_02" \
-    pretrained="bert-base-uncased" \
-    p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[150]
+# python3 runs_xiruo/step102_runExp_TwoHeads_SHAC.py with \
+#     proj_name="exp_TwoHeads_SHAC_05_02" \
+#     pretrained="bert-base-uncased" \
+#     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[150]
+
+# single Head Model
+# python3 runs_xiruo/step103_runExp_SingleLabel_SHAC.py with \
+#     proj_name="exp_SingleHead_SHAC_n500_05_02" \
+#     pretrained="bert-base-uncased" \
+#     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
+#     alpha_test=[0,5,0.1]
+
+# single Head Model
+python3 runs_xiruo/step103_runExp_SingleLabel_SHAC.py with \
+    proj_name="exp_SingleHead_SHAC_ClinicalBERT_n500_05_02" \
+    pretrained="medicalai/ClinicalBERT" \
+    p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
+    alpha_test=[0,5,0.1]
+
+# python3 runs_xiruo/step105_runExp_SingleLabel_UID_SHAC.py with \
+#     proj_name="exp_SingleHead_UID_SHAC_n500_05_02" \
+#     pretrained="bert-base-uncased" \
+#     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
+#     alpha_test=[0,5,0.1]
