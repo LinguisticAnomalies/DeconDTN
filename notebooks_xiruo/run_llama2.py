@@ -192,10 +192,10 @@ pick_C = args.CombinationIdx
 
 c = valid_n_full_settings[pick_C]
 
-dfs =  dfs = create_mix(df0=df0, df1=df1, target=label, setting=c, sample=False, 
-                         # seed=random.randint(0,1000),
-                         seed=222
-                        )
+dfs = create_mix(df0=df0, df1=df1, target=label, setting=c, sample=False, 
+                 # seed=random.randint(0,1000),
+                 seed=222
+                )
 
 tokenized_train = datasets_loader(dfs['train'])
 tokenized_test = datasets_loader(dfs['test'])
