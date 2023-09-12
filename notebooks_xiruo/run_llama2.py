@@ -261,6 +261,7 @@ config = {
     'num_train_epochs': globalconfig.num_train_epochs,
     'gradient_accumulation_steps': 2,
     'per_device_train_batch_size': 8,
+    'per_device_eval_batch_size': 8,
     'gradient_checkpointing': False,
     'warmup_ratio':globalconfig.warmup_ratio,
 }
