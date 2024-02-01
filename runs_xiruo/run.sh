@@ -86,14 +86,40 @@
 #     alpha_test=[0,5,0.1]
 
 # single Head Model
-python3 runs_xiruo/step103_runExp_SingleLabel_SHAC.py with \
-    proj_name="exp_SingleHead_SHAC_ClinicalBERT_n500_05_02" \
-    pretrained="medicalai/ClinicalBERT" \
-    p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
-    alpha_test=[0,5,0.1]
+# python3 runs_xiruo/step103_runExp_SingleLabel_SHAC.py with \
+#     proj_name="exp_SingleHead_SHAC_ClinicalBERT_n500_05_02" \
+#     pretrained="medicalai/ClinicalBERT" \
+#     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
+#     alpha_test=[0,5,0.1]
 
 # python3 runs_xiruo/step105_runExp_SingleLabel_UID_SHAC.py with \
 #     proj_name="exp_SingleHead_UID_SHAC_n500_05_02" \
 #     pretrained="bert-base-uncased" \
 #     p_pos_train_z0=[0.5] p_pos_train_z1=[0.2] n_test=[500] \
 #     alpha_test=[0,5,0.1]
+
+
+
+    
+    
+# p_pos_train_z0="[0, 1, 0.1]"\
+# p_pos_train_z1="[0, 1, 0.1]" \
+# p_mix_z1="[0, 1, 0.05]" \
+
+
+# p_pos_train_z0='[0.2, 0.6, 0.2]' \
+# p_pos_train_z1="[0.2, 0.6, 0.2]" \
+# p_mix_z1="[0.2, 0.6, 0.2]" \
+    
+    
+python3 runs_xiruo/step103_runExp_SingleLabel_SHAC_BalanceAlpha.py with \
+    proj_name="exp_SingleHead_SHAC_LoRA_BERT_C_ylimited_n200" \
+    pretrained="bert-base-uncased" \
+    p_pos_train_z0="[0, 1, 0.1]"\
+    p_pos_train_z1="[0, 1, 0.1]" \
+    p_mix_z1="[0, 1, 0.05]" \
+    numvals=129 \
+    base="1.01" \
+    n_test=[200] \
+    num_epochs=3 \
+    lr="1e-4"

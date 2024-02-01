@@ -13,11 +13,32 @@
 # python run_llama2.py --CombinationIdx=1251 --quantization
 # python run_llama2.py --CombinationIdx=2241 --quantization
 
-python run_llama2.py --CombinationIdx=1255 --quantization
-python run_llama2.py --CombinationIdx=2245 --quantization
+# alpha_train: 0.8 vs 1.25
+# python run_llama2.py --CombinationIdx=1138 --quantization
+# python run_llama2.py --CombinationIdx=1667 --quantization
 
-python run_llama2.py --CombinationIdx=1247 --quantization
-python run_llama2.py --CombinationIdx=2237 --quantization
+# python run_llama2.py --CombinationIdx=1139 --quantization
+# python run_llama2.py --CombinationIdx=1668 --quantization
 
-python run_llama2.py --CombinationIdx=1254 --quantization
-python run_llama2.py --CombinationIdx=2244 --quantization
+# python run_llama2.py --CombinationIdx=1145 --quantization
+# python run_llama2.py --CombinationIdx=1674 --quantization
+
+# python run_llama2.py --CombinationIdx=1150 --quantization
+# python run_llama2.py --CombinationIdx=1679 --quantization
+
+# python run_llama2.py --CombinationIdx=1153 --quantization
+# python run_llama2.py --CombinationIdx=1682 --quantization
+
+
+# python run_llama2.py --CombinationIdx=1156 --quantization
+# python run_llama2.py --CombinationIdx=1685 --quantization
+
+# python run_llama2.py --CombinationIdx=1159 --quantization
+# python run_llama2.py --CombinationIdx=1688 --quantization
+
+
+# python run_llama2.py --CombinationIdx=1160 --quantization
+# python run_llama2.py --CombinationIdx=1689 --quantization
+
+python run_llama2_balance05.py --CombinationIdx=75 --quantization
+

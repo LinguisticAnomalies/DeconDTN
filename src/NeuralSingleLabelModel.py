@@ -67,7 +67,7 @@ class NeuralSingleLabelModel:
 
         # instantiate model
         self.model = AutoModelForSequenceClassification.from_pretrained(
-            self.pretrained, config=config, use_auth_token=True,
+            self.pretrained, config=config, # use_auth_token=True,
             # local_files_only=True
         )
 
