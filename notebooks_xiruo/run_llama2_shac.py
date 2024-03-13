@@ -1,6 +1,32 @@
 import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+import argparse
+
+parser = argparse.ArgumentParser()
+
+# Adding optional argument
+parser.add_argument("-c", "--CombinationIdx", type=int, help="Set idx of c to use")
+parser.add_argument("-q", "--quantization", action="store_true")
+parser.add_argument("--lora_r", type=int, default=8, help="Set LoRA r value")
+parser.add_argument(
+    "--model_size", type=int, default=7, help="Llama 2 size: 7, 13, or 70"
+)
+parser.add_argument("--toPredict", default="Target", help="Target vs Source")
+parser.add_argument(
+    "--gpu",
+    type=str,
+    default="0",
+    help="On which GPU to run",
+)
+parser.add_argument(
+    "--nTest",
+    type=int,
+    default=200,
+    help="Number of testing samples",
+)
+args = parser.parse_args()
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
 
 import sys
@@ -39,28 +65,10 @@ from utils import number_split, create_mix
 from data_process import load_wls_adress_AddDomain
 from process_SHAC import load_process_SHAC
 
-### Temporary Argparse
-import argparse
-
-parser = argparse.ArgumentParser()
-
-# Adding optional argument
-parser.add_argument("-c", "--CombinationIdx", type=int, help="Set idx of c to use")
-parser.add_argument("-q", "--quantization", action="store_true")
-parser.add_argument("--lora_r", type=int, default=8, help="Set LoRA r value")
-parser.add_argument(
-    "--model_size", type=int, default=7, help="Llama 2 size: 7, 13, or 70"
-)
-
-# Read arguments from command line
-args = parser.parse_args()
-
 
 class train_config:
     def __init__(self):
         self.quantization: bool = False
-
-        
 
 
 globalconfig = train_config()
@@ -77,46 +85,67 @@ globalconfig.device = "cuda:0"
 
 if args.model_size == 70:
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-    globalconfig.per_device_train_batch_size = 1 #2
-    globalconfig.per_device_eval_batch_size = 1 #2
-    
+    globalconfig.per_device_train_batch_size = 1  # 2
+    globalconfig.per_device_eval_batch_size = 1  # 2
+
 
 else:
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     globalconfig.per_device_train_batch_size = 8
     globalconfig.per_device_eval_batch_size = 8
-    
+
 
 if args.quantization:
     dir_q_snippet = "quantization"
 else:
     dir_q_snippet = "NOquantization"
 
-globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n200/set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 # globalconfig.output_dir = f"~/llama2_SHAC/n200/set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
 
 ######  Load Data
 
 ### SHAC
-label = "Drug"
+
 z_category = ["uw", "mimic"]
 y_cat = ["False", "True"]
 
-label2id = {z: idx for idx, z in zip(range(len(y_cat)), y_cat)}
-id2label = {idx: z for idx, z in zip(range(len(y_cat)), y_cat)}
+txt_col = "text"
+domain_col = "location"
 
-df_shac = load_process_SHAC(replaceNA="all")
+if args.toPredict == "Target":
+    label = "Drug"
+    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
-df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
-df_shac["dfSource"] = df_shac["location"]
+    label2id = {z: idx for idx, z in zip(range(len(y_cat)), y_cat)}
+    id2label = {idx: z for idx, z in zip(range(len(y_cat)), y_cat)}
+
+    df_shac = load_process_SHAC(replaceNA="all")
+
+    df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
+    df_shac["dfSource"] = df_shac[domain_col]
+
+elif args.toPredict == "Source":
+    label = "location"
+    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
+
+    label2id = {z: idx for idx, z in zip(range(len(z_category)), z_category)}
+    id2label = {idx: z for idx, z in zip(range(len(z_category)), z_category)}
+
+    df_shac = load_process_SHAC(replaceNA="all")
+
+    df_shac["label_binary"] = df_shac.apply(lambda x: label2id[x[label]], axis=1)
+    df_shac["dfSource"] = df_shac[domain_col]
+
+else:
+    sys.exit("Unknown Outcome: 'Target' and 'Source' ONLY")
 
 df_shac_uw = df_shac.query("location == 'uw'").reset_index(drop=True)
 df_shac_mimic = df_shac.query("location == 'mimic'").reset_index(drop=True)
 
 ##### Split
 # SHAC-Drug - Balanced Alpha
-n_test = 200
+n_test = args.nTest
 train_test_ratio = 4
 
 
@@ -169,7 +198,14 @@ valid_n_full_settings = []
 for c in tqdm(valid_full_settings):
     c = c.copy()
     # create train/test split according to stats
-    dfs = create_mix(df0=df0, df1=df1, target=label, setting=c, sample=False, seed=222)
+    dfs = create_mix(
+        df0=df0,
+        df1=df1,
+        target=label if args.toPredict == "Target" else "Drug",
+        setting=c,
+        sample=False,
+        seed=222,
+    )
 
     if dfs is None:
         continue
@@ -186,7 +222,7 @@ tokenizer.add_special_tokens({"pad_token": "<pad>"})
 def preprocess_function(examples):
     # tokenize
     ret = tokenizer(
-        examples["text"],
+        examples[txt_col],
         return_tensors="pt",
         max_length=globalconfig.max_seq_length,
         padding="max_length",
@@ -199,7 +235,7 @@ def preprocess_function(examples):
 def datasets_loader(df):
     # from pandas df to Dataset & tokenize
     ret_datasets = datasets.Dataset.from_pandas(
-        df[["text", "dfSource", "label_binary"]]
+        df[[txt_col, "dfSource", "label_binary"]]
         .rename(columns={"label_binary": "label"})
         .reset_index(drop=True)
     )
@@ -217,7 +253,7 @@ print(c)
 dfs = create_mix(
     df0=df0,
     df1=df1,
-    target=label,
+    target=label if args.toPredict == "Target" else "Drug",
     setting=c,
     sample=False,
     # seed=random.randint(0,1000),

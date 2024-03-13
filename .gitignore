@@ -7,3 +7,5 @@ data
 runs_xiruo/.ipynb_checkpoints
 notebooks_xiruo/data
 notebooks_xiruo/~
+log
+logsTensorBoard
