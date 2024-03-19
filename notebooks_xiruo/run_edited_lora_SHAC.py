@@ -5,14 +5,26 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--adapterDir", type=str, help="Directory to the adapter")
 parser.add_argument("--output_dir", type=str, help="Directory to save outputs")
-parser.add_argument("-q", "--quantization", action="store_true", help="whether to use quantization")
-parser.add_argument("--percent", type=int, default=5, help="1/X of total setting will be used")
-parser.add_argument("--batch_size", type=int, default=32, help="Batch size for eval dataset")
+parser.add_argument(
+    "-q", "--quantization", action="store_true", help="whether to use quantization"
+)
+parser.add_argument(
+    "--percent", type=int, default=5, help="1/X of total setting will be used"
+)
+parser.add_argument(
+    "--batch_size", type=int, default=32, help="Batch size for eval dataset"
+)
 parser.add_argument(
     "--gpu",
     type=str,
     default="0",
     help="On which GPU to run",
+)
+parser.add_argument(
+    "--device",
+    type=str,
+    default="cuda:0",
+    help="Specify cuda GPU",
 )
 args = parser.parse_args()
 
@@ -71,7 +83,7 @@ from sklearn.metrics import roc_curve
 
 
 tmp = [x for x in args.adapterDir.split("/") if "set-" in x]
-name_pre = tmp[0] # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8
+name_pre = tmp[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8
 model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
 
@@ -84,7 +96,7 @@ class train_config:
 globalconfig = train_config()
 globalconfig.model_id = f"/bime-munin/llama2_hf/llama-2-{model_size}b_hf/"
 globalconfig.max_seq_length = 1024
-globalconfig.device = "cuda:0"
+globalconfig.device = args.device
 
 ##### Tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf/")
@@ -231,7 +243,9 @@ log_f = f"../log/{name_general}.log"
 
 # NTOE: for shorter version!!!
 valid_full_settings = [
-    valid_full_settings[x] for x in list(range(len(valid_full_settings))) if x % args.percent == 0
+    valid_full_settings[x]
+    for x in list(range(len(valid_full_settings)))
+    if x % args.percent == 0
 ]
 
 # if args.save_model:
