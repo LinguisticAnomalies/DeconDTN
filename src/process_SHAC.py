@@ -114,13 +114,14 @@ def getPatientLabel(base_dir, file_group):
     return df
 
 
-def load_SHAC(base_dir = "/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_sdoh_challenge"):
+def load_SHAC(
+    base_dir="/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_sdoh_challenge",
+):
     # base_dir = "/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_sdoh_challenge"
 
     # label reader
     ls_labels = []
 
-    tmp = {}
     for c in itertools.product(["train", "dev", "test"], ["uw", "mimic"]):
         file_group = c[0] + "/" + c[1]
 
@@ -151,7 +152,10 @@ def load_SHAC(base_dir = "/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_s
     return df_all
 
 
-def load_process_SHAC(replaceNA, base_dir="/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_sdoh_challenge"):
+def load_process_SHAC(
+    replaceNA,
+    base_dir="/edata/xiruod/SocialDeterminants_SHAC_n2c2_2022/n2c2_sdoh_challenge",
+):
     df = load_SHAC(base_dir=base_dir)
 
     assert replaceNA is not None

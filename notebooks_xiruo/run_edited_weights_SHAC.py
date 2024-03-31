@@ -176,17 +176,7 @@ p_pos_train_z1_ls = np.arange(
 )  # probability of test set examples drawn from site/domain z1 being positive
 
 
-p_mix_z1_ls = [
-    0.1,
-    0.2,
-    0.3,
-    0.4,
-    0.5,
-    0.6,
-    0.7,
-    0.8,
-    0.9,
-]  # = np.arange(0.1, 0.9, 0.05)
+p_mix_z1_ls = np.arange(0.1, 1, 0.1)
 
 # alpha_test_ls = np.arange(0, 10, 0.05)
 

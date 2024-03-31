@@ -4,6 +4,12 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # Adding optional argument
+parser.add_argument(
+    "--dataset",
+    type=str,
+    default="SHAC",
+    help="Dataset for the experiment",
+)
 parser.add_argument("-c", "--CombinationIdx", type=int, help="Set idx of c to use")
 parser.add_argument("-q", "--quantization", action="store_true")
 parser.add_argument("--lora_r", type=int, default=8, help="Set LoRA r value")
@@ -30,6 +36,12 @@ parser.add_argument(
     help="Number of testing samples",
 )
 parser.add_argument("--batchSize", type=int, default=8, help="Batch size")
+parser.add_argument(
+    "--mntdir",
+    type=str,
+    default="/bime-munin/",
+    help="Number of testing samples",
+)
 args = parser.parse_args()
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -65,11 +77,12 @@ from peft import (
 
 
 sys.path.append("../src")
+sys.path.append("../config")
 
 from utils import number_split, create_mix
+from sampling_numbers import HateSpeech_DICT, SHAC_DICT
 
-
-from data_process import load_wls_adress_AddDomain
+from process_HateSpeech import load_HateSpeech_dynGen, load_HateSpeech_wsf
 from process_SHAC import load_process_SHAC
 
 
@@ -80,7 +93,7 @@ class train_config:
 
 globalconfig = train_config()
 globalconfig.quantization = args.quantization
-globalconfig.model_id = f"/bime-munin/llama2_hf/llama-2-{args.model_size}b_hf/"
+globalconfig.model_id = f"{args.mntdir}/llama2_hf/llama-2-{args.model_size}b_hf/"
 globalconfig.max_seq_length = 1024
 globalconfig.num_train_epochs = 3
 globalconfig.runs = 1
@@ -89,9 +102,6 @@ globalconfig.warmup_ratio = 0.1
 globalconfig.lora_r = args.lora_r
 globalconfig.profiler = False
 globalconfig.device = args.device
-
-
-
 globalconfig.per_device_train_batch_size = args.batchSize
 globalconfig.per_device_eval_batch_size = args.batchSize
 
@@ -107,57 +117,90 @@ else:
 ######  Load Data
 
 ### SHAC
+if args.dataset == "SHAC":
+    z_category = ["uw", "mimic"]
+    y_Categories = ["False", "True"]
+    txt_col = "text"
+    domain_col = "location"
+elif args.dataset == "HateSpeech":
+    z_category = ["dynGen", "wsf"]
+    y_Categories = [0, 1]
+    txt_col = "text"
+    domain_col = "dfSource"
 
-z_category = ["uw", "mimic"]
-y_cat = ["False", "True"]
-
-txt_col = "text"
-domain_col = "location"
 
 if args.toPredict == "Target":
-    label = "Drug"
-    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
+    globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
-    label2id = {z: idx for idx, z in zip(range(len(y_cat)), y_cat)}
-    id2label = {idx: z for idx, z in zip(range(len(y_cat)), y_cat)}
+    if args.dataset == "SHAC":
+        label = "Drug"
 
-    df_shac = load_process_SHAC(replaceNA="all")
+        df_shac = load_process_SHAC(replaceNA="all")
+        df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
+        df_shac["dfSource"] = df_shac[domain_col]
+    elif args.dataset == "HateSpeech":
+        label = "label"
+        ## Hate Speech data already have "label_binary" and dfSource
+        df_dynGen = load_HateSpeech_dynGen()
+        df_wsf = load_HateSpeech_wsf()
 
-    df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
-    df_shac["dfSource"] = df_shac[domain_col]
+    label2id = {z: idx for idx, z in zip(range(len(y_Categories)), y_Categories)}
+    id2label = {idx: z for idx, z in zip(range(len(y_Categories)), y_Categories)}
+
 
 elif args.toPredict == "Source":
-    label = "location"
-    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
+    label = domain_col
+    globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
     label2id = {z: idx for idx, z in zip(range(len(z_category)), z_category)}
     id2label = {idx: z for idx, z in zip(range(len(z_category)), z_category)}
 
-    df_shac = load_process_SHAC(replaceNA="all")
+    if args.dataset == "SHAC":
+        df_shac = load_process_SHAC(replaceNA="all")
 
-    df_shac["label_binary"] = df_shac.apply(lambda x: label2id[x[label]], axis=1)
-    df_shac["dfSource"] = df_shac[domain_col]
+        df_shac["label_binary"] = df_shac.apply(lambda x: label2id[x[label]], axis=1)
+        df_shac["dfSource"] = df_shac[domain_col]
+    elif args.dataset == "HateSpeech":
+        df_dynGen = load_HateSpeech_dynGen()
+        df_wsf = load_HateSpeech_wsf()
+
+        df_dynGen.drop(["label_binary"], axis=1, inplace=True)
+        df_wsf.drop(["label_binary"], axis=1, inplace=True)
+
+        df_dynGen["label_binary"] = df_dynGen.apply(
+            lambda x: label2id[x[label]], axis=1
+        )
+        df_wsf["label_binary"] = df_wsf.apply(lambda x: label2id[x[label]], axis=1)
 
 else:
     sys.exit("Unknown Outcome: 'Target' and 'Source' ONLY")
 
-df_shac_uw = df_shac.query("location == 'uw'").reset_index(drop=True)
-df_shac_mimic = df_shac.query("location == 'mimic'").reset_index(drop=True)
+if args.dataset == "SHAC":
+    df_shac_uw = df_shac.query("location == 'uw'").reset_index(drop=True)
+    df_shac_mimic = df_shac.query("location == 'mimic'").reset_index(drop=True)
+
+    df0 = df_shac_uw
+    df1 = df_shac_mimic
+    df_split_label = "Drug"
+
+    p_pos_train_z0_ls = SHAC_DICT['PickC-0']["p_pos_train_z0_ls"]
+    p_pos_train_z1_ls = SHAC_DICT['PickC-0']["p_pos_train_z1_ls"]
+    p_mix_z1_ls = SHAC_DICT['PickC-0']["p_mix_z1_ls"]
+
+elif args.dataset == "HateSpeech":
+    df0 = df_dynGen
+    df1 = df_wsf
+    df_split_label = "label_binary"
+
+    p_pos_train_z0_ls = HateSpeech_DICT['PickC-0']["p_pos_train_z0_ls"]
+    p_pos_train_z1_ls = HateSpeech_DICT['PickC-0']["p_pos_train_z1_ls"]
+    p_mix_z1_ls = HateSpeech_DICT['PickC-0']["p_mix_z1_ls"]
+
 
 ##### Split
-# SHAC-Drug - Balanced Alpha
 n_test = args.nTest
 train_test_ratio = 4
 
-
-p_pos_train_z0_ls = np.arange(
-    0, 1, 0.1
-)  # probability of training set examples drawn from site/domain z0 being positive
-p_pos_train_z1_ls = np.arange(
-    0, 1, 0.1
-)  # probability of test set examples drawn from site/domain z1 being positive
-
-p_mix_z1_ls = np.arange(0, 1, 0.05)
 
 numvals = 1023
 base = 1.1
@@ -192,11 +235,6 @@ import warnings
 warnings.simplefilter("ignore")
 
 # Validate settings
-
-df0 = df_shac_uw
-df1 = df_shac_mimic
-
-
 valid_n_full_settings = []
 
 for c in tqdm(valid_full_settings):
@@ -205,7 +243,7 @@ for c in tqdm(valid_full_settings):
     dfs = create_mix(
         df0=df0,
         df1=df1,
-        target=label if args.toPredict == "Target" else "Drug",
+        target=df_split_label,
         setting=c,
         sample=False,
         seed=222,
@@ -219,7 +257,7 @@ for c in tqdm(valid_full_settings):
         break
 
 ##### Tokenizer
-tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf/")
+tokenizer = LlamaTokenizer.from_pretrained(f"{args.mntdir}/llama2_hf/llama-2-7b_hf/")
 
 tokenizer.add_special_tokens({"pad_token": "<pad>"})
 
@@ -258,7 +296,7 @@ print(c)
 dfs = create_mix(
     df0=df0,
     df1=df1,
-    target=label if args.toPredict == "Target" else "Drug",
+    target=df_split_label,
     setting=c,
     sample=False,
     # seed=random.randint(0,1000),
