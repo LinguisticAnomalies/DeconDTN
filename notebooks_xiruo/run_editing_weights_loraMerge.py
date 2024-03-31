@@ -19,13 +19,24 @@ parser.add_argument(
     "-q", "--quantization", action="store_true", help="whether to use quantization"
 )
 parser.add_argument(
-    "--gamma", type=int, default=1, help="scaling parameter for delta weight matrices"
+    "--lambda1", type=float, default=1, help="scaling parameter for delta weight matrices"
+)
+parser.add_argument(
+    "--lambda2", type=float, default=1, help="scaling parameter for delta weight matrices"
+)
+parser.add_argument(
+    "--DeltaFinished", action="store_true", help="if delta weights have been calculated"
 )
 parser.add_argument(
     "--gpu",
     type=str,
     default="0",
     help="On which GPU to run",
+)
+parser.add_argument(
+    "--cpuOps",
+    action="store_true",
+    help="Unload to CPU for tensors. This still stores state_dict() on GPU in the end",
 )
 args = parser.parse_args()
 
@@ -101,8 +112,8 @@ model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
 
 model_id = f"/bime-munin/llama2_hf/llama-2-{model_size}b_hf/"
-weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-delta.pth"        
-weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-gamma_1-added.pth"
+weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-delta.pth"        
+weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-added.pth"
 
 
 ##### Tokenizer
@@ -110,54 +121,91 @@ tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf
 
 tokenizer.add_special_tokens({"pad_token": "<pad>"})
 
-# ##### Load Target Adapter, Merge and Unload 
+def amplifyLoraWeights(model_in, adapter_name, magnitude=1.0):
+    key_list = [key for key, _ in model_in.model.named_modules() if model_in.prefix not in key]
+    for key in key_list:
+        _, target, _ = _get_submodules(model_in.model, key)
+        if isinstance(target, LoraLayer):
+            if adapter_name in target.lora_A:
+                target_lora_A = target.lora_A[adapter_name].weight
+                target_lora_B = target.lora_B[adapter_name].weight
+            elif adapter_name in target.lora_embedding_A:
+                target_lora_A = target.lora_embedding_A[adapter_name]
+                target_lora_B = target.lora_embedding_B[adapter_name]
+            else:
+                continue
+            
+            # Weights should be only amplified once, e.g., magnitude ^ 1, instead of magnitude ^ 2
+            target_lora_A.data = target_lora_A.data * magnitude
+            target_lora_B.data = target_lora_B.data
+    
+    return model_in
 
-# base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map='auto', load_in_8bit=args.quantization, torch_dtype=torch.float16)
+##### Load Target Adapter, Merge and Unload
+if not args.DeltaFinished:
+    if args.cpuOps:
+        load_device = "cpu"
+    else:
+        load_device = "auto"
+        
+    base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map=load_device, )  # load_in_8bit=args.quantization, torch_dtype=torch.bfloat16 if args.quantization else torch.float32)
 
-# base_model.config.pad_token_id = tokenizer.pad_token_id
-# base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
+    base_model.config.pad_token_id = tokenizer.pad_token_id
+    base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
 
-# model = PeftModel.from_pretrained(base_model, source_model_id, adapter_name='target')
-# merged_Target_model = model.merge_and_unload(progressbar=True)
+    model = PeftModel.from_pretrained(base_model, target_model_id, adapter_name='target')
 
-# state_dict_T = merged_Target_model.state_dict()
+    model = amplifyLoraWeights(model_in=model, adapter_name='target', magnitude=args.lambda1)
 
+    merged_Target_model = model.merge_and_unload(progressbar=True)
 
-# ##### Load Source Adapter, Merge and Unload 
-# base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map='auto', load_in_8bit=args.quantization, torch_dtype=torch.float16)
+    state_dict_T = merged_Target_model.state_dict()
 
-# base_model.config.pad_token_id = tokenizer.pad_token_id
-# base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
+    ##### Load Source Adapter, Merge and Unload 
+    base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map=load_device, )  # load_in_8bit=args.quantization, torch_dtype=torch.bfloat16 if args.quantization else torch.float32)
 
-# model = PeftModel.from_pretrained(base_model, target_model_id, adapter_name='source')
-# merged_Source_model = model.merge_and_unload(progressbar=True)
+    base_model.config.pad_token_id = tokenizer.pad_token_id
+    base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
 
-# state_dict_S = merged_Source_model.state_dict()
+    model = PeftModel.from_pretrained(base_model, source_model_id, adapter_name='source')
+    model = amplifyLoraWeights(model_in=model, adapter_name='source', magnitude=args.lambda2)
 
+    merged_Source_model = model.merge_and_unload(progressbar=True)
 
-# ##### Calculate Weight Delta & Save
-
-# for k in state_dict_T.keys():
-#     if k.endswith(".weight"):
-#         state_dict_T[k] = state_dict_T[k] - state_dict_S[k]
-
-# # args.weightsEditedDir = "/bime-munin/xiruod/llama2_SHAC/n500/Weights/"
-# torch.save(state_dict_T, weights_delta_file)
-
-# print("Successfully Saving Delta Weights!!!")
+    state_dict_S = merged_Source_model.state_dict()
 
 
-# del state_dict_T, state_dict_S, base_model, model, merged_Target_model, merged_Source_model
-# gc.collect()
-# torch.cuda.empty_cache() 
+    ##### Calculate Weight Delta & Save
+
+    for k in state_dict_T.keys():
+        if k.endswith(".weight"):
+            state_dict_T[k] = state_dict_T[k] - state_dict_S[k]
+            # if args.cpuOps:
+            #     state_dict_T[k] = state_dict_T[k].to('cpu') - state_dict_S[k].to('cpu')
+            # else:
+            #     state_dict_T[k] = state_dict_T[k] - state_dict_S[k]
+
+    # args.weightsEditedDir = "/bime-munin/xiruod/llama2_SHAC/n500/Weights/"
+    torch.save(state_dict_T, weights_delta_file)
+
+    print("Successfully Saving Delta Weights!!!")
+
+
+    del state_dict_T, state_dict_S, base_model, model, merged_Target_model, merged_Source_model
+    gc.collect()
+    torch.cuda.empty_cache() 
 
 
 ##### Load Delta and Merge with Original Pretrained Model
+if args.cpuOps:
+    map_location = 'cpu'
+else:
+    map_location = None
+    
+state_dict_delta = torch.load(weights_delta_file, map_location=map_location)
 
-state_dict_delta = torch.load(weights_delta_file)
 
-
-base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map='auto', load_in_8bit=args.quantization)
+base_model = LlamaForSequenceClassification.from_pretrained(model_id, device_map=load_device, )  # load_in_8bit=args.quantization)
 
 base_model.config.pad_token_id = tokenizer.pad_token_id
 base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
@@ -167,9 +215,21 @@ state_dict_o = base_model.state_dict()
 
 for k in state_dict_o.keys():
     if k.endswith(".weight"):
-        state_dict_o[k] = state_dict_o[k] + args.gamma * state_dict_delta[k]
+        state_dict_o[k] = state_dict_o[k] + state_dict_delta[k]
+        # if args.cpuOps:
+        #     state_dict_o[k] = state_dict_o[k].to('cpu') + state_dict_delta[k]
+        # else:
+        #     state_dict_o[k] = state_dict_o[k] + state_dict_delta[k]
 
+del state_dict_delta, base_model 
+gc.collect()
+torch.cuda.empty_cache() 
 
+if args.cpuOps:
+    for k in state_dict_o.keys():
+        if k.endswith(".weight"):
+            state_dict_o[k] = state_dict_o[k].to('cuda:0')
+            
 torch.save(state_dict_o, weights_edited_file)
 
 

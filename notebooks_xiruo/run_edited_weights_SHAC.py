@@ -9,7 +9,13 @@ parser.add_argument(
     "-q", "--quantization", action="store_true", help="whether to use quantization"
 )
 parser.add_argument(
+    "--nRuns", type=int, default=1, help="Number of experiments to run"
+)
+parser.add_argument(
     "--percent", type=int, default=5, help="1/X of total setting will be used"
+)
+parser.add_argument(
+    "--sampleValidSettings", action="store_true", help="whether to sample valid settings"
 )
 parser.add_argument(
     "--batch_size", type=int, default=32, help="Batch size for eval dataset"
@@ -25,6 +31,11 @@ parser.add_argument(
     type=str,
     default="cuda:0",
     help="Specify cuda GPU",
+)
+parser.add_argument(
+    "--cpuOps",
+    action="store_true",
+    help="Unload to CPU for tensors. This still stores state_dict() on GPU in the end",
 )
 args = parser.parse_args()
 
@@ -80,12 +91,15 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import auc
 from sklearn.metrics import roc_curve
-
+from accelerate.utils import load_and_quantize_model
+from accelerate.utils import BnbQuantizationConfig
+from accelerate import init_empty_weights
 
 tmp = [x for x in args.weightsEdited.split("/") if "set-" in x]
-name_pre = tmp[0].split(".")[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1-added.pth
+name_pre = tmp[0].split(".pth")[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1-added.pth
 model_size = int([x for x in name_pre.split("-") if "B" in x][0].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
+
 
 
 class train_config:
@@ -103,11 +117,17 @@ tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf
 
 tokenizer.add_special_tokens({"pad_token": "<pad>"})
 
+if args.cpuOps:
+    load_device = "cpu"
+    load_state_device = "cpu"
+else:
+    load_device = 'auto'
+    load_state_device = globalconfig.device
 ##### Load Model and  Update using Edited Weights 
 model = LlamaForSequenceClassification.from_pretrained(
     globalconfig.model_id,
-    device_map="auto",
-    load_in_8bit=args.quantization,
+    device_map=load_device,
+    # load_in_8bit=args.quantization,
     # torch_dtype=torch.float16,
 )
 
@@ -115,9 +135,19 @@ model.config.pad_token_id = tokenizer.pad_token_id
 
 model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
 
+# this step cannot be ignored here...
+model.load_state_dict(torch.load(args.weightsEdited, 
+                                 map_location=load_state_device,
+                                 # map_location=lambda storage, loc: storage,
+                                ))
 
-model.load_state_dict(torch.load(args.weightsEdited, map_location="cuda:0"))
+print("###  Finished Loading...")
 
+if args.quantization:
+    bnb_quantization_config = BnbQuantizationConfig(load_in_8bit=True, llm_int8_threshold = 6)
+    model = load_and_quantize_model(model, weights_location=args.weightsEdited, bnb_quantization_config=bnb_quantization_config, device_map = load_device)
+
+print("###  Finished Quantization...")
 
 ######  Load Data
 ### SHAC
@@ -134,7 +164,7 @@ n_yCats = len(y_Categories)
 
 ##### Split
 # SHAC-Drug - Balanced Alpha
-n_test = 500
+n_test = int([x for x in args.weightsEdited.split("/") if x.startswith("n")][0].strip("n"))
 train_test_ratio = 4
 
 
@@ -191,7 +221,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-runs = 1
+runs = args.nRuns
 
 
 # ### Hate Speech
@@ -209,23 +239,69 @@ runs = 1
 ### SHAC
 z_Categories = ["uw", "mimic"]  # the order here matters! Should match with df0, df1
 label = "label_binary"
+split_label = 'Drug'
 n_zCats = len(z_Categories)
 txt_col = "text"
 domain_col = "location"
 df0 = df_shac_uw
 df1 = df_shac_mimic
 outdir = args.output_dir
-name_general = f"{name_pre}_ntest_{n_test}_setting_1_{args.percent}"
+name_general = f"OriginalWeightsEdited-{name_pre}-ntest_{n_test}-pct_1_{args.percent}"
 log_f = f"../log/{name_general}.log"
-# log_f = f"../log/test.log"
+
+### Diff out training samples
+
+_name_split = name_pre.split("-")  ## set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.5-added.pth
+pick_C = int(_name_split[_name_split.index('set')+1])
+
+_tmp_valids = []
+
+for c in tqdm(valid_full_settings):
+    c = c.copy()
+    # create train/test split according to stats
+    dfs = create_mix(
+        df0=df0,
+        df1=df1,
+        target=split_label,
+        setting=c,
+        sample=False,
+        seed=222,
+    )
+
+    if dfs is None:
+        continue
+
+    _tmp_valids.append(c)
+    
+    if (len(_tmp_valids)-1) == pick_C:
+        break
+
+c = _tmp_valids[pick_C]
+
+dfs_used = create_mix(df0=df0, df1=df1, target=label, setting=c, sample=False, 
+                 # seed=random.randint(0,1000),
+                 seed=222
+                )
+   
+df0 = df0[~df0[txt_col].isin(dfs_used['train'][txt_col])].reset_index(drop=True)
+df0 = df0[~df0[txt_col].isin(dfs_used['test'][txt_col])].reset_index(drop=True)
+
+    
+df1 = df1[~df1[txt_col].isin(dfs_used['train'][txt_col])].reset_index(drop=True)
+df1 = df1[~df1[txt_col].isin(dfs_used['test'][txt_col])].reset_index(drop=True)
 
 
+
+
+
+
+            
 # NTOE: for shorter version!!!
-valid_full_settings = [
-    valid_full_settings[x]
-    for x in list(range(len(valid_full_settings)))
-    if x % args.percent == 0
-]
+# valid_full_settings = [
+#     valid_full_settings[x]
+#     for x in list(range(len(valid_full_settings)))
+#     if x % args.percent == 0
+# ]
 
 # if args.save_model:
 #     valid_full_settings = [
@@ -363,7 +439,7 @@ auprc_weightsEdited_df0 = []
 auprc_weightsEdited_df1 = []
 
 
-valid_n_full_settings = []
+record_valid_settings_n = []
 
 
 precision_weightsEdited = []
@@ -415,8 +491,10 @@ def datasets_loader(df):
 
 for iRun in range(runs):
     _rand = random.randint(0, 2**32 - 1)
+    _n_setting = 0
+    
     print(_rand)
-
+    
     print(iRun)
     for c in tqdm(valid_full_settings, file=open(log_f, "w")):
         # for c in test_settings:
@@ -438,13 +516,23 @@ for iRun in range(runs):
 
         if dfs is None:
             continue
+        
+        
+        ##### NTOE: for shorter version!!!
+        _n_setting += 1
+        if _n_setting % args.percent != 0:
+            continue
+
+        if args.sampleValidSettings:
+            if round(c['mix_param_dict']['alpha_train'], 4) not in [1, 1.5, 0.6667, 2, 0.5, 3, 0.3333, 4, 0.25, 6, 0.1667]:
+                continue
 
         # #### TO DELETE: For results on Selected C_y ONLY!!!!!!!!!
         # if round(c['mix_param_dict']['C_y'], 4) not in [0.36, 0.44, 0.52, 0.24, 0.54, 0.84]:
         #     continue
 
         c["run"] = iRun
-        valid_n_full_settings.append(c)
+        record_valid_settings_n.append(c)
 
         y_train = dfs["train"][label]
         y_test = dfs["test"][label]
@@ -587,12 +675,12 @@ df_eval = pd.DataFrame(
 )
 
 
-for k in valid_n_full_settings[0]["mix_param_dict"].keys():
-    df_eval[k] = [_dict["mix_param_dict"][k] for _dict in valid_n_full_settings]
+for k in record_valid_settings_n[0]["mix_param_dict"].keys():
+    df_eval[k] = [_dict["mix_param_dict"][k] for _dict in record_valid_settings_n]
 
-for k in valid_n_full_settings[0].keys():
+for k in record_valid_settings_n[0].keys():
     if k != "mix_param_dict":
-        df_eval[k] = [_dict[k] for _dict in valid_n_full_settings]
+        df_eval[k] = [_dict[k] for _dict in record_valid_settings_n]
 
 
 outname = f"{outdir}/{name_general}.pkl"

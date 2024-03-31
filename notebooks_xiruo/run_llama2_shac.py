@@ -18,11 +18,18 @@ parser.add_argument(
     help="On which GPU to run",
 )
 parser.add_argument(
+    "--device",
+    type=str,
+    default="cuda:0",
+    help="cuda device",
+)
+parser.add_argument(
     "--nTest",
     type=int,
     default=200,
     help="Number of testing samples",
 )
+parser.add_argument("--batchSize", type=int, default=8, help="Batch size")
 args = parser.parse_args()
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -81,18 +88,12 @@ globalconfig.lr = 1e-4
 globalconfig.warmup_ratio = 0.1
 globalconfig.lora_r = args.lora_r
 globalconfig.profiler = False
-globalconfig.device = "cuda:0"
-
-if args.model_size == 70:
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
-    globalconfig.per_device_train_batch_size = 1  # 2
-    globalconfig.per_device_eval_batch_size = 1  # 2
+globalconfig.device = args.device
 
 
-else:
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-    globalconfig.per_device_train_batch_size = 8
-    globalconfig.per_device_eval_batch_size = 8
+
+globalconfig.per_device_train_batch_size = args.batchSize
+globalconfig.per_device_eval_batch_size = args.batchSize
 
 
 if args.quantization:
@@ -115,7 +116,7 @@ domain_col = "location"
 
 if args.toPredict == "Target":
     label = "Drug"
-    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
+    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
     label2id = {z: idx for idx, z in zip(range(len(y_cat)), y_cat)}
     id2label = {idx: z for idx, z in zip(range(len(y_cat)), y_cat)}
@@ -127,7 +128,7 @@ if args.toPredict == "Target":
 
 elif args.toPredict == "Source":
     label = "location"
-    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch3-llama-2-{args.model_size}B-loraR-{args.lora_r}"
+    globalconfig.output_dir = f"/bime-munin/xiruod/llama2_SHAC/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
     label2id = {z: idx for idx, z in zip(range(len(z_category)), z_category)}
     id2label = {idx: z for idx, z in zip(range(len(z_category)), z_category)}
@@ -161,6 +162,9 @@ p_mix_z1_ls = np.arange(0, 1, 0.05)
 numvals = 1023
 base = 1.1
 alpha_test_ls = np.power(base, np.arange(numvals)) / np.power(base, numvals // 2)
+
+
+pick_C = args.CombinationIdx
 
 valid_full_settings = []
 for combination in itertools.product(
@@ -211,6 +215,8 @@ for c in tqdm(valid_full_settings):
         continue
 
     valid_n_full_settings.append(c)
+    if (len(valid_n_full_settings) - 1) == pick_C:
+        break
 
 ##### Tokenizer
 tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf/")
@@ -245,7 +251,6 @@ def datasets_loader(df):
 
 
 ##### Experiment - ONLY One Setting
-pick_C = args.CombinationIdx
 
 c = valid_n_full_settings[pick_C]
 print("Balanced? Check setting....")
@@ -279,9 +284,9 @@ def compute_metrics_twoLevels(eval_pred):
 model = LlamaForSequenceClassification.from_pretrained(
     globalconfig.model_id,
     load_in_8bit=globalconfig.quantization,
-    device_map=globalconfig.device,
-    # device_map="auto",
-    torch_dtype=torch.float16 if globalconfig.quantization else torch.float32,
+    # device_map=globalconfig.device,
+    device_map="auto",
+    torch_dtype=torch.bfloat16 if globalconfig.quantization else torch.float32,
     num_labels=len(id2label),
     id2label=id2label,
     label2id=label2id,

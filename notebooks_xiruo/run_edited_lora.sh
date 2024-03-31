@@ -26,10 +26,6 @@
 
 # python run_edited_lora_SHAC.py --adapterDir="/bime-munin/xiruod/llama2_SHAC/n500/LoraAdapters_TargetNorm/set-1355-quantization-epoch3-llama-2-13B-loraR-8/delta" --output_dir="../output/tmpData/LoraAdapters_TargetNorm/" --percent=15 --quantization --gpu="0,2" --device="cuda:0" --batch_size=8
 
-
-
-
-############### Just Finished
 # python run_editing_lora.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --adapterDir="/bime-munin/xiruod/llama2_SHAC/n500/LoraAdapters_FroNorm/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --quantization --gpu="0,2" --targetFroNorm
 
 # python run_edited_lora_SHAC.py --adapterDir="/bime-munin/xiruod/llama2_SHAC/n500/LoraAdapters_FroNorm/set-1355-quantization-epoch3-llama-2-13B-loraR-8/delta" --output_dir="../output/tmpData/LoraAdapters_TargetFroNorm/" --percent=15 --quantization --gpu="0,2" --device="cuda:0" --batch_size=8
@@ -42,21 +38,103 @@
 
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-13B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma=1
 
-python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-13B-loraR-8-gamma_1-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1_Added/" --percent=15 --quantization --gpu="0,2" --device="cuda:0" --batch_size=8
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-13B-loraR-8-gamma_1-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1_Added/" --percent=15 --quantization --gpu="0,2" --device="cuda:0" --batch_size=8
 
-#~~~ Cognitive Distortion
-# python avh_Mistral.py --job='avh_noDOT_All_NoExample_Mistral'
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='0.1' --DeltaFinished
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='0.2' --DeltaFinished
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='0.5'
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='0.8' --DeltaFinished
+
+
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_0.1-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_0.1_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_0.2-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_0.2_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_0.5-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_0.5_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=32
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_0.8-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_0.8_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='1.5' --DeltaFinished
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='2.0' --DeltaFinished
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='3.0' --DeltaFinished
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1.5-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1.5_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_2.0-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_2.0_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_3.0-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_3.0_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+
+
+############### Just Finished
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='1' --lambda1='1' --lambda2='0.5'
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1.0-lambda1_1.0-lambda2_0.5-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1.0_Lamda1_1.0_Lambda2_0.5_Added/" --percent=15 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1.0-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1.0_Lamda1_2.0_Lambda2_1.0_Added/" --percent=20 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='1' --lambda1='2' --lambda2='1'
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0,1,2" --gamma='1' --lambda1='1' --lambda2='0'
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1.0-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/WeightsEdited_Gamma_1.0_Lamda1_1.0_Lambda2_0.0_Added/" --percent=20 --quantization --gpu="0,1" --device="cuda:0" --batch_size=16
+
+
+
+
+
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0' --cpuOps
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="2" --lambda1='2' --lambda2='1' --cpuOps
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0" --lambda1='3' --lambda2='1' --cpuOps
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0" --lambda1='4' --lambda2='2' --cpuOps
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0" --lambda1='2' --lambda2='0.5' --cpuOps
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n500/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n500/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0.5' --cpuOps
+
+
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/SHAC/" --percent=20 --quantization --gpu="0" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --percent=20 --quantization --gpu="0" --device="cuda:0" --batch_size=16
+
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n500/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --percent=15 --quantization --gpu="0" --device="cuda:0" --batch_size=16
 
 ############### Ongoing
 
-python run_noDoT_benchmark_Mistral.py
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0' --cpuOps
+python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+
+
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='2' --lambda2='1' --cpuOps
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16  --percent=1
+python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="1" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0.5' --cpuOps
+python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.5-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="2" --device="cuda:0" --batch_size=8  --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+
+
+
 
 
 ############### To Be Scheduled
 
+# python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="1" --lambda1='3' --lambda2='1' --cpuOps
 
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="1" --device="cuda:0" --batch_size=8 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
-
-
-
-# TODO: Weight Normalization: vector?? --> Frob Matrix Norm? or LayerNorm, BatchNorm 
+# TESTING...
