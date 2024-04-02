@@ -95,7 +95,7 @@ python run_llama2_general.py --model_size=7 --CombinationIdx=1355 --lora_r=8 --q
 python run_llama2_general.py --model_size=7 --CombinationIdx=1355 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
 python run_llama2_general.py --model_size=7 --CombinationIdx=1355 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" 
 
+
+python run_llama2_general.py --model_size=7 --CombinationIdx=2800 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
+python run_llama2_general.py --model_size=7 --CombinationIdx=2800 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" 
 #######  HateSpeech
-python run_llama2_general.py --dataset="HateSpeech" --model_size=7 --CombinationIdx=247
---lora_r=8 --quantization --toPredict='Target' --nTest=1000 --batchSize=4 --gpu="0" --device="cuda:0" 
---mntdir="/mntDataDrive"

@@ -164,8 +164,8 @@ elif args.toPredict == "Source":
         df_dynGen = load_HateSpeech_dynGen()
         df_wsf = load_HateSpeech_wsf()
 
-        df_dynGen.drop(["label_binary"], axis=1, inplace=True)
-        df_wsf.drop(["label_binary"], axis=1, inplace=True)
+        df_dynGen.rename(columns={"label_binary":"target_binary"}, inplace=True)
+        df_wsf.rename(columns={"label_binary":"target_binary"}, inplace=True)
 
         df_dynGen["label_binary"] = df_dynGen.apply(
             lambda x: label2id[x[label]], axis=1
@@ -190,7 +190,7 @@ if args.dataset == "SHAC":
 elif args.dataset == "HateSpeech":
     df0 = df_dynGen
     df1 = df_wsf
-    df_split_label = "label_binary"
+    df_split_label = "label_binary" if args.toPredict == "Target" else "target_binary"
 
     p_pos_train_z0_ls = HateSpeech_DICT['PickC-0']["p_pos_train_z0_ls"]
     p_pos_train_z1_ls = HateSpeech_DICT['PickC-0']["p_pos_train_z1_ls"]

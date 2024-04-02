@@ -116,20 +116,23 @@
 
 
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0' --cpuOps
-python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
 
 
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='2' --lambda2='1' --cpuOps
-# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16  --percent=1
-python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="1" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="1" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1355-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0.5' --cpuOps
-python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.5-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="2" --device="cuda:0" --batch_size=8  --percent=5 --sampleValidSettings --cpuOps --nRuns=5
+# python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.5-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="2" --device="cuda:0" --batch_size=8  --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
 
 
+python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-2800-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="0" --lambda1='1' --lambda2='0' --cpuOps
+python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-2800-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="1" --device="cuda:0" --batch_size=8 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
+python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-2800-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights/" --quantization --gpu="2" --lambda1='2' --lambda2='1' --cpuOps
+python run_edited_weights_SHAC.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights/set-2800-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="../output/tmpData/SHAC/" --quantization --gpu="0" --device="cuda:0" --batch_size=16 --percent=5 --sampleValidSettings --cpuOps --nRuns=5
 
 ############### To Be Scheduled
 

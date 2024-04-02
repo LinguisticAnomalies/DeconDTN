@@ -180,8 +180,7 @@ def confoundSplitNumbers(
 
 def create_mix(df1, df0, target, setting, sample=False, seed=2023):
     """Create a mixture dataset from two source based on pre-set constraints"""
-    # n_total = len(df1) + len(df0)
-
+    # 03/26/2024 change log: if sample, make sure it is sample after split so one record won't occur in both train and test
     # check if there is enough positive samples in each dataset
     n_z0_pos = setting["n_z0_pos_train"] + setting["n_z0_pos_test"]
     n_z1_pos = setting["n_z1_pos_train"] + setting["n_z1_pos_test"]
@@ -204,18 +203,29 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
             random_state=seed,
         )
     elif sample:
-        df0_pos_extra = df0_pos.sample(n=n_z0_pos - len(df0_pos), replace=True)
-        df0_pos_sampled = pd.concat([df0_pos, df0_pos_extra], axis=0, ignore_index=True)
         df0_train_pos, df0_test_pos = train_test_split(
-            df0_pos_sampled,
-            train_size=setting["n_z0_pos_train"],
-            test_size=setting["n_z0_pos_test"],
+            df0_pos,
+            test_size=setting["n_z0_pos_test"] / n_z0_pos,
             shuffle=True,
             random_state=seed,
         )
+        df0_train_pos_extra = df0_train_pos.sample(
+            n=setting["n_z0_pos_train"] - len(df0_train_pos), replace=True
+        )
+        df0_test_pos_extra = df0_test_pos.sample(
+            n=setting["n_z0_pos_test"] - len(df0_test_pos), replace=True
+        )
+
+        df0_train_pos = pd.concat(
+            [df0_train_pos, df0_train_pos_extra], axis=0, ignore_index=True
+        )
+        df0_test_pos = pd.concat(
+            [df0_test_pos, df0_test_pos_extra], axis=0, ignore_index=True
+        )
+
     else:
         warnings.warn("Set sample equals to True or augment current dataset.")
-        return
+        return None
 
     # for z0 negative
     if n_z0_neg <= len(df0_neg):
@@ -227,18 +237,29 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
             random_state=seed,
         )
     elif sample:
-        df0_neg_extra = df0_neg.sample(n=n_z0_neg - len(df0_neg), replace=True)
-        df0_neg_sampled = pd.concat([df0_neg, df0_neg_extra], axis=0, ignore_index=True)
         df0_train_neg, df0_test_neg = train_test_split(
-            df0_neg_sampled,
-            train_size=setting["n_z0_neg_train"],
-            test_size=setting["n_z0_neg_test"],
+            df0_neg,
+            test_size=setting["n_z0_neg_test"] / n_z0_neg,
             shuffle=True,
             random_state=seed,
         )
+        df0_train_neg_extra = df0_train_neg.sample(
+            n=setting["n_z0_neg_train"] - len(df0_train_neg), replace=True
+        )
+        df0_test_neg_extra = df0_test_neg.sample(
+            n=setting["n_z0_neg_test"] - len(df0_test_neg), replace=True
+        )
+
+        df0_train_neg = pd.concat(
+            [df0_train_neg, df0_train_neg_extra], axis=0, ignore_index=True
+        )
+        df0_test_neg = pd.concat(
+            [df0_test_neg, df0_test_neg_extra], axis=0, ignore_index=True
+        )
+
     else:
         warnings.warn("Set sample equals to True or augment current dataset.")
-        return
+        return None
 
     # for z1 positive
     if n_z1_pos <= len(df1_pos):
@@ -250,18 +271,29 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
             random_state=seed,
         )
     elif sample:
-        df1_pos_extra = df1_pos.sample(n=n_z1_pos - len(df1_pos), replace=True)
-        df1_pos_sampled = pd.concat([df1_pos, df1_pos_extra], axis=0, ignore_index=True)
         df1_train_pos, df1_test_pos = train_test_split(
-            df1_pos_sampled,
-            train_size=setting["n_z1_pos_train"],
-            test_size=setting["n_z1_pos_test"],
+            df1_pos,
+            test_size=setting["n_z1_pos_test"] / n_z1_pos,
             shuffle=True,
             random_state=seed,
         )
+        df1_train_pos_extra = df1_train_pos.sample(
+            n=setting["n_z1_pos_train"] - len(df1_train_pos), replace=True
+        )
+        df1_test_pos_extra = df1_test_pos.sample(
+            n=setting["n_z1_pos_test"] - len(df1_test_pos), replace=True
+        )
+
+        df1_train_pos = pd.concat(
+            [df1_train_pos, df1_train_pos_extra], axis=0, ignore_index=True
+        )
+        df1_test_pos = pd.concat(
+            [df1_test_pos, df1_test_pos_extra], axis=0, ignore_index=True
+        )
+
     else:
         warnings.warn("Set sample equals to True or augment current dataset.")
-        return
+        return None
 
     # for z1 negative
     if n_z1_neg <= len(df1_neg):
@@ -273,18 +305,29 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
             random_state=seed,
         )
     elif sample:
-        df1_neg_extra = df1_neg.sample(n=n_z1_neg - len(df1_neg), replace=True)
-        df1_neg_sampled = pd.concat([df1_neg, df1_neg_extra], axis=0, ignore_index=True)
         df1_train_neg, df1_test_neg = train_test_split(
-            df1_neg_sampled,
-            train_size=setting["n_z1_neg_train"],
-            test_size=setting["n_z1_neg_test"],
+            df1_neg,
+            test_size=setting["n_z1_neg_test"] / n_z1_neg,
             shuffle=True,
             random_state=seed,
         )
+        df1_train_neg_extra = df1_train_neg.sample(
+            n=setting["n_z1_neg_train"] - len(df1_train_neg), replace=True
+        )
+        df1_test_neg_extra = df1_test_neg.sample(
+            n=setting["n_z1_neg_test"] - len(df1_test_neg), replace=True
+        )
+
+        df1_train_neg = pd.concat(
+            [df1_train_neg, df1_train_neg_extra], axis=0, ignore_index=True
+        )
+        df1_test_neg = pd.concat(
+            [df1_test_neg, df1_test_neg_extra], axis=0, ignore_index=True
+        )
+
     else:
         warnings.warn("Set sample equals to True or augment current dataset.")
-        return
+        return None
 
     # assemble mixed train and test
     df_train = pd.concat(
@@ -297,6 +340,11 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
         axis=0,
         ignore_index=True,
     )
+
+    # Check Data Leak
+    if df_train["id"].isin(df_test["id"]).any():
+        warnings.warn("Data Leakage!")
+        return None
 
     return {"train": df_train, "test": df_test, "setting": setting}
 
