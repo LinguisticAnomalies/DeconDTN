@@ -186,7 +186,10 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
     n_z1_pos = setting["n_z1_pos_train"] + setting["n_z1_pos_test"]
     n_z0_neg = setting["n_z0_neg_train"] + setting["n_z0_neg_test"]
     n_z1_neg = setting["n_z1_neg_train"] + setting["n_z1_neg_test"]
-
+    
+    df0 = df0.assign(_tmpid = lambda x: ["s0_" + str(x) for x in range(len(x))])
+    df1 = df1.assign(_tmpid = lambda x: ["s1_" + str(x) for x in range(len(x))])
+    
     df0_pos = df0[df0[target] == 1]
     df1_pos = df1[df1[target] == 1]
 
@@ -342,10 +345,13 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
     )
 
     # Check Data Leak
-    if df_train["id"].isin(df_test["id"]).any():
+    if df_train["_tmpid"].isin(df_test["_tmpid"]).any():
         warnings.warn("Data Leakage!")
         return None
 
+    df_train.drop(['_tmpid'], axis=1, inplace=True)
+    df_test.drop(['_tmpid'], axis=1, inplace=True)
+    
     return {"train": df_train, "test": df_test, "setting": setting}
 
 
