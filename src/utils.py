@@ -6,7 +6,7 @@ import itertools
 import warnings
 
 
-def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test):
+def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test, holdCy=True, p_pos_test_z1=None, p_pos_test_z0=None):
     """Calculate probability constraint given some priors"""
 
     assert 0 <= p_pos_train_z1 <= 1
@@ -22,13 +22,24 @@ def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test):
     # C_y = p_test(y=1) = p_test(z=0) * p_test(y=1|z=0) + p_test(z=1) * p_test(y=1|z=1)
     C_y = p_mix_z0 * p_pos_train_z0 + p_mix_z1 * p_pos_train_z1
 
-    p_pos_test_z0 = C_y / (1 - (1 - alpha_test) * C_z)
-    p_pos_test_z1 = alpha_test * p_pos_test_z0
+    if holdCy:
+        p_pos_test_z0 = C_y / (1 - (1 - alpha_test) * C_z)
+        p_pos_test_z1 = alpha_test * p_pos_test_z0
+        
+        C_y_test = C_y
+        
+    else:
+        assert 0 <= p_pos_test_z1 <= 1
+        assert 0 <= p_pos_test_z0 <= 1
+        
+        alpha_test = p_pos_test_z1/p_pos_test_z0
+        C_y_test = p_mix_z0 * p_pos_test_z0 + p_mix_z1 * p_pos_test_z1
+        
 
     # alpha_test = p_pos_test_z1 / p_pos_test_z0
     alpha_train = p_pos_train_z1 / p_pos_train_z0
 
-    return {
+    ret = {
         "p_pos_train_z0": p_pos_train_z0,
         "p_pos_train_z1": p_pos_train_z1,
         "p_pos_train": C_y,
@@ -41,7 +52,12 @@ def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test):
         "p_pos_test_z1": p_pos_test_z1,
         "C_y": C_y,
         "C_z": C_z,
+        "C_y_test":C_y_test,
     }
+    
+    
+    return ret
+
 
 
 def confoundSplitNumbers(
@@ -355,6 +371,7 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
     return {"train": df_train, "test": df_test, "setting": setting}
 
 
+
 def number_split(
     p_pos_train_z1,
     p_pos_train_z0,
@@ -363,17 +380,22 @@ def number_split(
     train_test_ratio=5,
     n_test=100,  # set the number for tests
     verbose=True,
+    holdCy=True, p_pos_test_z1=None, p_pos_test_z0=None
 ):
     """Get required number of samples for each category"""
     assert isinstance(train_test_ratio, int)
     assert isinstance(n_test, int)
 
     mix_param_dict = confoundSplit(
-        p_pos_train_z0=p_pos_train_z0,
-        p_pos_train_z1=p_pos_train_z1,
-        p_mix_z1=p_mix_z1,
-        alpha_test=alpha_test,
-    )
+            p_pos_train_z0=p_pos_train_z0,
+            p_pos_train_z1=p_pos_train_z1,
+            p_mix_z1=p_mix_z1,
+            alpha_test=alpha_test,
+            holdCy=holdCy,
+            p_pos_test_z1=p_pos_test_z1,
+            p_pos_test_z0=p_pos_test_z0
+        )
+        
 
     if all(
         0 < mix_param_dict[key] < 1
@@ -432,6 +454,7 @@ def number_split(
         )
 
     return None
+
 
 
 def confoundSplitDF(

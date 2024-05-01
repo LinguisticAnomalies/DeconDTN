@@ -31,6 +31,12 @@ parser.add_argument(
     help="scaling parameter for delta weight matrices",
 )
 parser.add_argument(
+    "--lambda3",
+    type=float,
+    default=1,
+    help="scaling parameter for delta weight matrices",
+)
+parser.add_argument(
     "--DeltaFinished", action="store_true", help="if delta weights have been calculated"
 )
 parser.add_argument(
@@ -111,14 +117,18 @@ else:
     nm_mod = [x if "set-" not in x else "Source-" + x for x in nm_split]
     source_model_id = "/".join(nm_mod)
 
+    reverse_nm_mod = [x if "set-" not in x else "Reverse-Source-" + x for x in nm_split]
+    source_model_id_2 = "/".join(reverse_nm_mod)
+
+
 tmp = [x for x in target_model_id.split("/") if "set-" in x]
 name_pre = tmp[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8
 model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
 
 model_id = f"/bime-munin/llama2_hf/llama-2-{model_size}b_hf/"
-weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-delta.pth"
-weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-added.pth"
+weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-lambda3_{args.lambda3}-delta.pth"
+weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-lambda3_{args.lambda3}-added.pth"
 
 
 ##### Tokenizer
@@ -161,6 +171,7 @@ if not args.DeltaFinished:
     torch.manual_seed(222)
     torch.cuda.manual_seed(222)
     torch.cuda.manual_seed_all(222)
+
     base_model = LlamaForSequenceClassification.from_pretrained(
         model_id,
         device_map=load_device,
@@ -219,6 +230,36 @@ if not args.DeltaFinished:
 
     del base_model, model, merged_Target_model, merged_Source_model
 
+    ##### Load Source-2 Adapter, Merge and Unload
+    torch.manual_seed(222)
+    torch.cuda.manual_seed(222)
+    torch.cuda.manual_seed_all(222)
+    base_model = LlamaForSequenceClassification.from_pretrained(
+        model_id,
+        device_map=load_device,
+    )  # load_in_8bit=args.quantization, torch_dtype=torch.bfloat16 if args.quantization else torch.float32)
+
+    base_model.config.pad_token_id = tokenizer.pad_token_id
+    base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
+
+    model = PeftModel.from_pretrained(
+        base_model, source_model_id_2, adapter_name="source_reverse"
+    )
+    score_weight_vector = (
+        base_model.state_dict()["score.modules_to_save.source_reverse.weight"]
+        - base_model.state_dict()["score.original_module.weight"]
+    )
+    model = amplifyLoraWeights(
+        model_in=model, adapter_name="source_reverse", magnitude=args.lambda3
+    )
+
+    merged_Source_Reverse_model = model.merge_and_unload(progressbar=True)
+
+    state_dict_S_reverse = merged_Source_Reverse_model.state_dict()
+    state_dict_S_reverse["score.weight"] = score_weight_vector * args.lambda3
+
+    del base_model, model, merged_Source_Reverse_model
+
     ##### Calculate Weight Delta & Save
     lora_layers = set(
         [
@@ -231,21 +272,14 @@ if not args.DeltaFinished:
         [x.split(".lora")[0] + ".weight" for x in lora_layers]
     )
 
-    # for k in state_dict_T.keys():
-    #     if k.endswith(".weight"):
-    #         if k in list(lora_layers_MapOriginalNames) + ["score.weight"]:
-    #             state_dict_T[k] = (
-    #                 state_dict_T[k] - state_dict_S[k] - state_dict_S_reverse[k]
-    #             )
-    #             # if args.cpuOps:
-    #             #     state_dict_T[k] = state_dict_T[k].to('cpu') - state_dict_S[k].to('cpu')
-    #             # else:
-    #             #     state_dict_T[k] = state_dict_T[k] - state_dict_S[k]
-    #         else:
-    #             state_dict_T[k] = torch.zeros(state_dict_T[k].shape)
     for k in state_dict_oT.keys():
         if k in list(lora_layers_MapOriginalNames) + ["score.weight"]:
-            state_dict_oT[k] = state_dict_T[k] - state_dict_S[k] + state_dict_oT[k]
+            state_dict_oT[k] = (
+                state_dict_T[k]
+                - state_dict_S[k]
+                - state_dict_S_reverse[k]
+                + state_dict_oT[k] * 2
+            )
     if args.cpuOps:
         for k in state_dict_oT.keys():
             if k.endswith(".weight"):

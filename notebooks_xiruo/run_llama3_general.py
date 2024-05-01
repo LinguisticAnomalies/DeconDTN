@@ -42,7 +42,6 @@ parser.add_argument(
     default="/bime-munin/",
     help="Number of testing samples",
 )
-parser.add_argument("--reverseLabel", action="store_true")
 args = parser.parse_args()
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -142,7 +141,6 @@ if args.toPredict == "Target":
         df_shac = load_process_SHAC(replaceNA="all")
         df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
         df_shac["dfSource"] = df_shac[domain_col]
-        
     elif args.dataset == "HateSpeech":
         label = "label"
         ## Hate Speech data already have "label_binary" and dfSource
@@ -157,10 +155,6 @@ elif args.toPredict == "Source":
     label = domain_col
     globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
 
-    if args.reverseLabel:
-        z_category.reverse()
-        globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/Reverse-Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
-    
     label2id = {z: idx for idx, z in zip(range(len(z_category)), z_category)}
     id2label = {idx: z for idx, z in zip(range(len(z_category)), z_category)}
 
@@ -169,7 +163,6 @@ elif args.toPredict == "Source":
 
         df_shac["label_binary"] = df_shac.apply(lambda x: label2id[x[label]], axis=1)
         df_shac["dfSource"] = df_shac[domain_col]
-        
     elif args.dataset == "HateSpeech":
         df_dynGen = load_HateSpeech_dynGen()
         df_wsf = load_HateSpeech_wsf()
@@ -275,10 +268,6 @@ def compute_metrics_twoLevels(eval_pred):
 
 
 ## Initialize model
-torch.manual_seed(222)
-torch.cuda.manual_seed(222)
-torch.cuda.manual_seed_all(222)
-
 model = LlamaForSequenceClassification.from_pretrained(
     globalconfig.model_id,
     load_in_8bit=globalconfig.quantization,

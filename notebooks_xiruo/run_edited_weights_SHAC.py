@@ -3,6 +3,12 @@ import argparse
 
 ### Temporary Argparse
 parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--dataset",
+    type=str,
+    default="SHAC",
+    help="Dataset for the experiment",
+)
 parser.add_argument("--weightsEdited", type=str, help="Path to edited weights")
 parser.add_argument("--output_dir", type=str, help="Directory to save outputs")
 parser.add_argument(
@@ -37,6 +43,12 @@ parser.add_argument(
     action="store_true",
     help="Unload to CPU for tensors. This still stores state_dict() on GPU in the end",
 )
+parser.add_argument(
+    "--mntdir",
+    type=str,
+    default="/bime-munin/",
+    help="Number of testing samples",
+)
 args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -52,10 +64,13 @@ from peft import PeftModel
 import sys
 
 sys.path.append("../src")
+sys.path.append("../config")
 
 from utils import number_split, create_mix
 from data_process import load_wls_adress_AddDomain
 from process_SHAC import load_process_SHAC
+from process_HateSpeech import load_HateSpeech_dynGen, load_HateSpeech_wsf
+from sampling_numbers import HateSpeech_DICT, SHAC_DICT
 
 import itertools
 from tqdm.auto import tqdm
@@ -95,6 +110,8 @@ from accelerate.utils import load_and_quantize_model
 from accelerate.utils import BnbQuantizationConfig
 from accelerate import init_empty_weights
 
+
+
 tmp = [x for x in args.weightsEdited.split("/") if "set-" in x]
 name_pre = tmp[0].split(".pth")[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1-added.pth
 model_size = int([x for x in name_pre.split("-") if "B" in x][0].replace("B", ""))  # 7, 13, 70
@@ -108,12 +125,12 @@ class train_config:
 
 
 globalconfig = train_config()
-globalconfig.model_id = f"/bime-munin/llama2_hf/llama-2-{model_size}b_hf/"
+globalconfig.model_id = f"{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
 globalconfig.max_seq_length = 1024
 globalconfig.device = args.device
 
 ##### Tokenizer
-tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf/")
+tokenizer = LlamaTokenizer.from_pretrained(f"{args.mntdir}/llama2_hf/llama-2-7b_hf/", use_safetensors=False)
 
 tokenizer.add_special_tokens({"pad_token": "<pad>"})
 
@@ -129,6 +146,7 @@ model = LlamaForSequenceClassification.from_pretrained(
     device_map=load_device,
     # load_in_8bit=args.quantization,
     # torch_dtype=torch.float16,
+    use_safetensors=False
 )
 
 model.config.pad_token_id = tokenizer.pad_token_id
@@ -150,13 +168,22 @@ if args.quantization:
 print("###  Finished Quantization...")
 
 ######  Load Data
-### SHAC
-df_shac = load_process_SHAC(replaceNA="all")
-df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x["Drug"] else 0, axis=1)
+if args.dataset == "SHAC":
+    ### SHAC
+    df_shac = load_process_SHAC(replaceNA="all")
+    df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x["Drug"] else 0, axis=1)
 
-df_shac["dfSource"] = df_shac["location"]
-df_shac_uw = df_shac.query("location == 'uw'").reset_index(drop=True)
-df_shac_mimic = df_shac.query("location == 'mimic'").reset_index(drop=True)
+    df_shac["dfSource"] = df_shac["location"]
+    df_shac_uw = df_shac.query("location == 'uw'").reset_index(drop=True)
+    df_shac_mimic = df_shac.query("location == 'mimic'").reset_index(drop=True)
+
+
+elif args.dataset == "HateSpeech":
+        
+    df_dynGen = load_HateSpeech_dynGen()
+    df_wsf = load_HateSpeech_wsf()
+
+
 
 y_Categories = [0, 1]
 n_yCats = len(y_Categories)
@@ -167,18 +194,14 @@ n_yCats = len(y_Categories)
 n_test = int([x for x in args.weightsEdited.split("/") if x.startswith("n")][0].strip("n"))
 train_test_ratio = 4
 
-
-p_pos_train_z0_ls = np.arange(
-    0, 1, 0.1
-)  # probability of training set examples drawn from site/domain z0 being positive
-p_pos_train_z1_ls = np.arange(
-    0, 1, 0.1
-)  # probability of test set examples drawn from site/domain z1 being positive
-
-
-p_mix_z1_ls = np.arange(0.1, 1, 0.1)
-
-# alpha_test_ls = np.arange(0, 10, 0.05)
+if args.dataset == "SHAC":
+    p_pos_train_z0_ls = SHAC_DICT["Run-0"]['p_pos_train_z0_ls']
+    p_pos_train_z1_ls = SHAC_DICT["Run-0"]['p_pos_train_z1_ls']
+    p_mix_z1_ls = SHAC_DICT["Run-0"]['p_mix_z1_ls']
+elif args.dataset == "HateSpeech":
+    p_pos_train_z0_ls = HateSpeech_DICT["Run-1"]['p_pos_train_z0_ls']
+    p_pos_train_z1_ls = HateSpeech_DICT["Run-1"]['p_pos_train_z1_ls']
+    p_mix_z1_ls = HateSpeech_DICT["Run-1"]['p_mix_z1_ls']
 
 numvals = 1023
 base = 1.1
@@ -205,6 +228,9 @@ for combination in itertools.product(
             valid_full_settings.append(number_setting)
 
 
+
+
+
 ##### Run Experiments
 import warnings
 
@@ -213,66 +239,48 @@ warnings.simplefilter("ignore")
 
 runs = args.nRuns
 
-
-# ### Hate Speech
-# z_Categories = ["dynGen", "wsf"]  # the order here matters! Should match with df0, df1
-# label = "label_binary"
-# n_zCats = len(z_Categories)
-# txt_col = "text"
-# domain_col = "dfSource"
-# df0 = df_dynGen
-# df1 = df_wsf
-# outdir = f"../output/DistilBERT_HateSpeechBalanceAlpha_RandomPermute_ShorterVersion_1_5"
-# log_f = "../log/DistilBERT_HateSpeechBalanceAlpha_RandomPermute_ShorterVersion_1_5.log"
-
-
-### SHAC
-z_Categories = ["uw", "mimic"]  # the order here matters! Should match with df0, df1
-label = "label_binary"
-split_label = 'Drug'
-n_zCats = len(z_Categories)
-txt_col = "text"
-domain_col = "location"
-df0 = df_shac_uw
-df1 = df_shac_mimic
 outdir = args.output_dir
 name_general = f"OriginalWeightsEdited-{name_pre}-ntest_{n_test}-pct_1_{args.percent}"
 log_f = f"../log/{name_general}.log"
-
-### Diff out training samples
-
 _name_split = name_pre.split("-")  ## set-1355-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.5-added.pth
 pick_C = int(_name_split[_name_split.index('set')+1])
 
-_tmp_valids = []
 
-for c in tqdm(valid_full_settings):
-    c = c.copy()
-    # create train/test split according to stats
-    dfs = create_mix(
-        df0=df0,
-        df1=df1,
-        target=split_label,
-        setting=c,
-        sample=False,
-        seed=222,
-    )
+if args.dataset == "HateSpeech":
 
-    if dfs is None:
-        continue
+    ### Hate Speech
+    z_Categories = ["dynGen", "wsf"]  # the order here matters! Should match with df0, df1
+    label = "label_binary"
+    split_label = "label_binary"
+    n_zCats = len(z_Categories)
+    txt_col = "text"
+    domain_col = "dfSource"
+    df0 = df_dynGen
+    df1 = df_wsf
 
-    _tmp_valids.append(c)
-    
-    if (len(_tmp_valids)-1) == pick_C:
-        break
+    c = HateSpeech_DICT[f"c_n{n_test}_{pick_C}"]  # e.g.: "c_n1000_9870"
 
-c = _tmp_valids[pick_C]
+elif args.dataset == "SHAC":
+    ### SHAC
+    z_Categories = ["uw", "mimic"]  # the order here matters! Should match with df0, df1
+    label = "label_binary"
+    split_label = 'Drug'
+    n_zCats = len(z_Categories)
+    txt_col = "text"
+    domain_col = "location"
+    df0 = df_shac_uw
+    df1 = df_shac_mimic
+
+    c = SHAC_DICT[f"c_n{n_test}_{pick_C}"]  # e.g.: "c_n200_2800"
+
 
 dfs_used = create_mix(df0=df0, df1=df1, target=label, setting=c, sample=False, 
-                 # seed=random.randint(0,1000),
-                 seed=222
+                # seed=random.randint(0,1000),
+                seed=222
                 )
-   
+
+assert dfs_used is not None
+
 df0 = df0[~df0[txt_col].isin(dfs_used['train'][txt_col])].reset_index(drop=True)
 df0 = df0[~df0[txt_col].isin(dfs_used['test'][txt_col])].reset_index(drop=True)
 
@@ -281,136 +289,6 @@ df1 = df1[~df1[txt_col].isin(dfs_used['train'][txt_col])].reset_index(drop=True)
 df1 = df1[~df1[txt_col].isin(dfs_used['test'][txt_col])].reset_index(drop=True)
 
 
-
-
-
-
-            
-# NTOE: for shorter version!!!
-# valid_full_settings = [
-#     valid_full_settings[x]
-#     for x in list(range(len(valid_full_settings)))
-#     if x % args.percent == 0
-# ]
-
-# if args.save_model:
-#     valid_full_settings = [
-#         setting
-#         for setting in valid_full_settings
-#         if (
-#             (round(setting["mix_param_dict"]["alpha_train"], 1) in (0.3, 3.0))
-#             and (
-#                 (0.20 <= round(setting["mix_param_dict"]["alpha_test"], 2) <= 0.30)
-#                 or (1.30 <= round(setting["mix_param_dict"]["alpha_test"], 2) <= 1.40)
-#                 or (3.7 <= round(setting["mix_param_dict"]["alpha_test"], 2) <= 3.8)
-#             )
-#             and (round(setting["mix_param_dict"]["C_y"], 2) in (0.24, 0.36, 0.48))
-#         )
-#     ]
-#     outdir = f"../output/DistilBERT_SHACBalanceAlpha_RandomPermute_ShorterVersion_1_5_SaveModel"
-#     log_f = ("../log/DistilBERT_SHACBalanceAlpha_RandomPermute_ShorterVersion_1_5_SaveModel.log")
-
-
-### CivilComments from WILDS, by christian
-# z_Categories = ["christian", "nonchristian"]  # the order here matters! Should match with df0, df1
-# label='y_true'
-# n_zCats = len(z_Categories)
-# txt_col="text"
-# domain_col = "Christian"
-# df0 = df_christian
-# df1 = df_nonchristian
-# outdir = f"../output/regressionCivilComments_by_Christian"
-
-### CivilComments from WILDS, by White
-# z_Categories = ["white", "notwhite"]  # the order here matters! Should match with df0, df1
-# label='y_true'
-# n_zCats = len(z_Categories)
-# txt_col="text"
-# domain_col = "White"
-# df0 = df_white
-# df1 = df_notwhite
-# outdir = f"../output/regressionCivilComments_by_White"
-
-### CivilComments from WILDS, by Male
-# z_Categories = ["male", "notmale"]  # the order here matters! Should match with df0, df1
-# label='y_true'
-# n_zCats = len(z_Categories)
-# txt_col="text"
-# domain_col = "Male"
-# df0 = df_male
-# df1 = df_notmale
-# outdir = f"../output/regressionCivilComments_by_Male"
-
-# save to file
-# outname = f"../output/regressionInverseSHAC_MIMIC_UW/{transform}_{p_pos_train_z0}_{p_pos_train_z1}_{n_test}_{penalty}_C{C}_V{v}.pkl"
-# outname = f"../output/regressionSHAC/{transform}_{p_pos_train_z0}_{p_pos_train_z1}_{n_test}_{penalty}_C{C}_V{v}.pkl"
-
-
-### IMDB
-# z_Categories = ["Horror","Documentary"]
-# label='label_binary'
-# n_zCats = len(z_Categories)
-# z_Categories = ["Horror","nonHorror"]
-# label='label_binary'
-# n_zCats = len(z_Categories)
-
-### Yelp by States, AZ vs MO
-# z_Categories = ["AZ","MO"]
-# label='label'
-# n_zCats = len(z_Categories)
-# txt_col = "text"
-# domain_col = 'state'
-# df0 = df_AZ
-# df1 = df_MO
-
-### Yelp by Year
-# z_Categories = ["<=2015",">=2020"]
-# label='label'
-# n_zCats = len(z_Categories)
-# txt_col = "text"
-# domain_col = 'year_cut'
-# df0 = df_before2015
-# df1 = df_after2020
-
-
-##### Test for LLaMa Average Embeddings
-## SHAC
-
-# # transform = "LLaMaAverageV2_7B"
-# transform = "LLaMaAverageV2_13B"
-# transform = "LLaMaAverageV2_70B_8Quant"
-
-# runs = 5
-
-# # SHAC
-# z_Categories = ["uw", "mimic"]  # the order here matters! Should match with df0, df1
-# label='Drug'
-# n_zCats = len(z_Categories)
-# txt_col="LLaMaEmbeddings"
-# domain_col = "location"
-# df0 = df_shac_llama_average_uw
-# df1 = df_shac_llama_average_mimic
-# outdir = f"../output/regressionSHACBalanceAlpha"
-
-## Hate Speech
-
-# transform = "LLaMaAverageV2_7B"
-# transform = "LLaMaAverageV2_13B"
-# transform = "LLaMaAverageV2_70B_8Quant"
-# transform = "LLaMaAverageV2_7B_Permute"
-# transform = "LLaMaAverageV2_13B_Permute"
-
-
-# runs = 5
-
-# z_Categories = ["dynGen", "wsf"]  # the order here matters! Should match with df0, df1
-# label='label_binary'
-# n_zCats = len(z_Categories)
-# txt_col="LLaMaEmbeddings"
-# domain_col = "dfSource"
-# df0 = df_dynGen
-# df1 = df_wsf
-# outdir = f"../output/regressionHateSpeechBalanceAlpha"
 
 
 os.makedirs(outdir, exist_ok=True)
@@ -509,17 +387,14 @@ for iRun in range(runs):
         
         
         ##### NTOE: for shorter version!!!
+        if args.sampleValidSettings:
+            if round(c['mix_param_dict']['alpha_train'], 4) not in [1, 2, 0.5, 4, 0.25, 6, 0.1667]:
+                continue
+
         _n_setting += 1
         if _n_setting % args.percent != 0:
             continue
 
-        if args.sampleValidSettings:
-            if round(c['mix_param_dict']['alpha_train'], 4) not in [1, 1.5, 0.6667, 2, 0.5, 3, 0.3333, 4, 0.25, 6, 0.1667]:
-                continue
-
-        # #### TO DELETE: For results on Selected C_y ONLY!!!!!!!!!
-        # if round(c['mix_param_dict']['C_y'], 4) not in [0.36, 0.44, 0.52, 0.24, 0.54, 0.84]:
-        #     continue
 
         c["run"] = iRun
         record_valid_settings_n.append(c)
