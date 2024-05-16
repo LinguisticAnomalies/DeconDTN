@@ -94,7 +94,8 @@ elif args.dataset == "HateSpeech":
     df_dynGen = load_HateSpeech_dynGen()
     df_wsf = load_HateSpeech_wsf()
 
-    n_test = 1000
+    # n_test = 1000
+    n_test = 200
 else:
     sys.exit("no such dataset for processing")
 

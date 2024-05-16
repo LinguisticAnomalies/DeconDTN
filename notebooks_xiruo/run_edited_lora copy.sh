@@ -124,13 +124,13 @@
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-11063-quantization-epoch3-llama-2-7B-loraR-8" --source_model_id="/bime-munin/xiruod/llama2_SHAC/n200/Reverse-Source-set-11063-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/" --quantization --gpu="0" --lambda1='2' --lambda2='1' --cpuOps
 # python run_editing_weights_loraMerge.py --target_model_id="/bime-munin/xiruod/llama2_SHAC/n200/set-1152-quantization-epoch3-llama-2-7B-loraR-8" --source_model_id="/bime-munin/xiruod/llama2_SHAC/n200/Reverse-Source-set-1152-quantization-epoch3-llama-2-7B-loraR-8" --weightsEditedDir="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/" --quantization --gpu="0" --lambda1='2' --lambda2='1' --cpuOps
 
-python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
-python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
-python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
+# python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
+# python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
+# python run_edited_weights_InferenceOnly.py --weightsEdited="/bime-munin/xiruod/llama2_SHAC/n200/Weights_ReverseSource/set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added.pth" --output_dir="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/" --quantization --gpu="0" --device="cuda:0" --batch_size=8 --cpuOps --dataset="SHAC"
 
-python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
-python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
-python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences_ReverseSource/inference_set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/SHAC_ReverseSource/" --nRuns=5 --dataset="SHAC"
 
 
 
@@ -186,3 +186,83 @@ python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llam
 # python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences/inference_set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added" --output_dir="../output/tmpData/SHAC/" --nRuns=5 --dataset="SHAC"
 # python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences/inference_set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added" --output_dir="../output/tmpData/SHAC/" --nRuns=5 --dataset="SHAC"
 # python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_SHAC/n200/Inferences/inference_set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added" --output_dir="../output/tmpData/SHAC/" --nRuns=5 --dataset="SHAC"
+
+
+
+
+
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesProj/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S" --output_dir="../output/tmpData/HateSpeech_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesProj/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S" --output_dir="../output/tmpData/HateSpeech_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesProj/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS" --output_dir="../output/tmpData/HateSpeech_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesProj/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS" --output_dir="../output/tmpData/HateSpeech_proj/" --nRuns=5 --dataset="HateSpeech"
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesNormProj/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesNormProj/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesNormProj/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/InferencesNormProj/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences_ReverseSource/inference_set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added" --output_dir="../output/tmpData/HateSpeech_ReverseSource/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences_ReverseSource/inference_set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added" --output_dir="../output/tmpData/HateSpeech_ReverseSource/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n1000/Inferences_ReverseSource/inference_set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added" --output_dir="../output/tmpData/HateSpeech_ReverseSource/" --nRuns=5 --dataset="HateSpeech"
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/Inferences/inference_set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/Inferences/inference_set-3636-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/Inferences/inference_set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added" --output_dir="../output/tmpData/HateSpeech/" --nRuns=5 --dataset="HateSpeech"
+
+
+
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/InferencesNormProj/inference_set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/InferencesNormProj/inference_set-3636-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+# python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/InferencesNormProj/inference_set-3636-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"
+python run_edited_weights_Eval.py --inferencePathPrefix="/bime-munin/xiruod/llama2_HateSpeech/n200/InferencesNormProj/inference_set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS" --output_dir="../output/tmpData/HateSpeech_norm_proj/" --nRuns=5 --dataset="HateSpeech"

@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import cm
 from matplotlib.ticker import ScalarFormatter
-
+import itertools
 sys.path.append("../src")
 from custom_distance import KL, conditionKL
 
@@ -167,42 +167,69 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
 # ]
+
+# fnames = [
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
+
+# ]
 # subdir = "original"
 
-fnames = [
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
-    
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
 
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
-    
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
-    
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
-    
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
 
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+# fnames = [
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
     
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
-    "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
-]
-subdir = "ReverseSource"
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
+
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
+
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
+# ]
+# fnames = [
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
+    
+# ]
+# subdir = "ReverseSource"
 
 # fnames = [
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added-ntest_200-Runs_5",
@@ -233,9 +260,30 @@ subdir = "ReverseSource"
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.6-lambda2_0.8-lambda3_0.8-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.6-lambda2_0.8-lambda3_0.8-added-ntest_200-Runs_5",
     
+#     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+    
 
 # ]
 # subdir = "threeLambdas"
+
+# fnames = [
+#     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+    
+   
+    
+
+# ]
+# subdir = "threeLambdas_proj"
 
 # fnames = [
 #     "../output/regressionSHACBalanceAlpha/LoRA_18965_ntest_200_7B-loraR-2_l2_C1_V10",
@@ -249,8 +297,48 @@ subdir = "ReverseSource"
 #     "../output/regressionSHACBalanceAlpha/LoRA_18965_ntest_200_70B-loraR-8_l2_C1_V10",
 #     "../output/regressionSHACBalanceAlpha/LoRA_18965_ntest_200_70B-loraR-32_l2_C1_V10",
 # ]
+# subdir = "loras"
 
-dataset_name = "SHAC"
+# fnames = [
+    
+#     "../output/tmpData/SHAC_norm_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S-ntest_200-Runs_5",
+
+# ]
+# subdir = "threeLambdas_norm_proj"
+
+# fnames = [
+#     "../output/tmpData/SHAC_norm/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_norm/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_norm/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
+
+# ]
+# subdir = "threeLambdas_norm"
+
+# fnames = [
+#     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_1.0-lambda3_0.3-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_1.0-lambda3_0.3-added-Proj_S-ntest_200-Runs_5",
+    
+#     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S-ntest_200-Runs_5",
+#     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S-ntest_200-Runs_5",
+    
+# ]
+# subdir = "threeLambdas_proj"
+
+
+
+
+# dataset_name = "SHAC"
 
 
 ##############  HateSpeech
@@ -308,7 +396,113 @@ dataset_name = "SHAC"
 # ]
 
 
+# fnames = [
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_2.0-added-ntest_1000-Runs_5',
+
+#     '../output/tmpData/HateSpeech/Eval-set-9870-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-1874-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_1000-Runs_5',
+#     '../output/tmpData/HateSpeech/Eval-set-6126-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_1000-Runs_5',
+
+
+# ]
+
+# fnames = [
+
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
+    
+    
+# ]
+# subdir = "original"
+
+
+
+# fnames = [
+    
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
+    
+    
+# ]
+# subdir = "ReverseSource"
+
+
+# fnames = [
+    
+#     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-3636-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+#     "../output/tmpData/HateSpeech/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
+# ]
+
+
+# subdir = "threeLambdas"
+
+# fnames = [
+#     "../output/tmpData/HateSpeech_norm_proj/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S-ntest_200-Runs_5",
+    
+# ]
+# subdir = "threeLambdas_norm_proj"
+
 # dataset_name = 'HateSpeech'
+
+
+
+# dataset_name = 'SHAC'
+# set_ls = [1152, 6114, 11063]
+
+dataset_name = 'HateSpeech'
+set_ls = [566, 3636, 6621]
+
+
+lambda2_ls = ['0.0', '0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0']
+
+original_template = "../output/tmpData/{}/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_{}-added-ntest_200-Runs_5"
+subdir = "original"
+# original_template = "../output/tmpData/{}_ReverseSource/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_{}-added-ntest_200-Runs_5"
+# subdir = "ReverseSource"
+
+fnames = [original_template.format(dataset_name, s, l) for s, l in itertools.product(set_ls, lambda2_ls)]
+
 
 
 def getSummary(fname, dataset_name):
@@ -318,13 +512,15 @@ def getSummary(fname, dataset_name):
     df = df_eval.copy()
 
     setname = int(fname.split("set-")[1].split("-")[0])
-    if setname == 11063:
+    if setname in [11063, 9870, 6621]:
         alpha_train = 0.2
-    elif setname == 6114:
+    elif setname in [6114, 6126, 3636]:
         alpha_train = 1
-    elif setname == 1152:
+    elif setname in [1152, 1874, 566]:
         alpha_train = 5
 
+    # alpha_train = 1
+    
     alpha_train_recip = 1 / alpha_train
 
     _df = df.copy()
@@ -403,27 +599,6 @@ def getSummary(fname, dataset_name):
                 np.mean(tmpdf[tmpdf["alpha_test"] == alpha_train_recip][y_name])
             )
 
-            # ttt = np.mean(tmpdf[tmpdf["alpha_test"] == alpha_train][y_name])
-
-            # if np.isnan(ttt):
-            #     breakpoint
-            #     print(fname)
-            #     sys.exit()
-
-            # idx_train = (np.abs(tmpdf["alpha_test"] - alpha_train)).argmin()
-            # y_alpha_train.append(np.mean(
-            #     tmpdf[tmpdf["alpha_test"] == np.array(tmpdf["alpha_test"])[idx_train]][
-            #         y_name
-            #     ]
-            # ))
-
-            # idx_train_recip = (np.abs(tmpdf["alpha_test"] - alpha_train_recip)).argmin()
-            # y_alpha_train_recip.append(np.mean(
-            #     tmpdf[
-            #         tmpdf["alpha_test"]
-            #         == np.array(tmpdf["alpha_test"])[idx_train_recip]
-            #     ][y_name]
-            # ))
 
     df_summary = pd.DataFrame(
         {
@@ -451,9 +626,10 @@ def getSummary(fname, dataset_name):
     df_summary["lambda1"] = float(
         [x for x in name_base.split("-") if x.startswith("lambda1")][0].split("_")[1]
     )
-    df_summary["lambda2"] = float(
-        [x for x in name_base.split("-") if x.startswith("lambda2")][0].split("_")[1]
-    )
+    if 'lambda2' in fname:
+        df_summary["lambda2"] = float(
+            [x for x in name_base.split("-") if x.startswith("lambda2")][0].split("_")[1]
+        )
 
     if "lambda3" in fname:
         df_summary["lambda3"] = float(

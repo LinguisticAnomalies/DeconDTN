@@ -25,18 +25,6 @@ parser.add_argument(
     help="scaling parameter for delta weight matrices",
 )
 parser.add_argument(
-    "--lambda2",
-    type=float,
-    default=1,
-    help="scaling parameter for delta weight matrices",
-)
-parser.add_argument(
-    "--lambda3",
-    type=float,
-    default=1,
-    help="scaling parameter for delta weight matrices",
-)
-parser.add_argument(
     "--DeltaFinished", action="store_true", help="if delta weights have been calculated"
 )
 parser.add_argument(
@@ -45,6 +33,7 @@ parser.add_argument(
     default="0",
     help="On which GPU to run",
 )
+
 parser.add_argument(
     "--cpuOps",
     action="store_true",
@@ -104,10 +93,30 @@ from transformers import (
     TrainerCallback,
     default_data_collator,
 )
+from safetensors import safe_open
 from torch.linalg import vector_norm
 from torch.linalg import matrix_norm
+from numpy.linalg import lstsq
+from scipy.linalg import orth
 import random
 from copy import deepcopy
+
+
+def find_orth(in_vectors):
+    rand_vec = np.random.rand(in_vectors.shape[0], 1)
+    A = np.hstack((in_vectors, rand_vec))
+    b = np.zeros(in_vectors.shape[1] + 1)
+    b[-1] = 1
+    return lstsq(A.T, b)[0]
+
+
+def projVector(a, projv):
+
+    ret = (
+        a.flatten().numpy()
+        - np.dot(a.flatten().numpy(), projv) / (np.linalg.norm(projv) ** 2) * projv
+    )
+    return torch.tensor(ret.reshape(a.shape)).type(torch.float32)
 
 
 target_model_id = (
@@ -133,8 +142,9 @@ model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
 
 model_id = f"/{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
-weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-lambda3_{args.lambda3}-delta.pth"
-weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-lambda3_{args.lambda3}-added.pth"
+weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-added-Norm.pth"
+
+os.makedirs(f"{args.weightsEditedDir}", exist_ok=True)
 
 
 ##### Tokenizer
@@ -166,6 +176,81 @@ def amplifyLoraWeights(model_in, adapter_name, magnitude=1.0):
             target_lora_B.data = target_lora_B.data
 
     return model_in
+
+
+def amplifyLoraWeightsTowardsTarget(
+    model_in,
+    adapter_name,
+    target_tensors,
+    source_tensors,
+    reverse_source_tensors,
+):
+
+    key_list = [
+        key for key, _ in model_in.model.named_modules() if model_in.prefix not in key
+    ]
+    for key in key_list:
+        _, target, _ = _get_submodules(model_in.model, key)
+        if isinstance(target, LoraLayer):
+            if adapter_name in target.lora_A:
+                target_lora_A = target.lora_A[adapter_name].weight
+                target_lora_B = target.lora_B[adapter_name].weight
+            elif adapter_name in target.lora_embedding_A:
+                target_lora_A = target.lora_embedding_A[adapter_name]
+                target_lora_B = target.lora_embedding_B[adapter_name]
+            else:
+                continue
+
+            # Weights should be only amplified once, e.g., magnitude ^ 1, instead of magnitude ^ 2
+            k = "base_model.model." + key
+
+            A_t = target_tensors[f"{k}.lora_A.weight"]
+            B_t = target_tensors[f"{k}.lora_B.weight"]
+
+            A_s = source_tensors[f"{k}.lora_A.weight"]
+            B_s = source_tensors[f"{k}.lora_B.weight"]
+
+            A_rs = reverse_source_tensors[f"{k}.lora_A.weight"]
+            B_rs = reverse_source_tensors[f"{k}.lora_B.weight"]
+
+            norm_t = torch.norm(torch.matmul(B_t, A_t), p="fro").item()
+            norm_s = torch.norm(torch.matmul(B_s, A_s), p="fro").item()
+            norm_rs = torch.norm(torch.matmul(B_rs, A_rs), p="fro").item()
+
+            magnitude = (args.lambda1 - 1) / (
+                norm_s / norm_t + norm_rs / norm_t
+            )  # a/(p1+p2)
+
+            # Weights should be only amplified once, e.g., magnitude ^ 1, instead of magnitude ^ 2
+            target_lora_A.data = target_lora_A.data * magnitude
+            target_lora_B.data = target_lora_B.data
+
+    return model_in
+
+
+##### Readin Lora Adapters for all 3 models
+target_tensors = {}
+source_tensors = {}
+reverse_source_tensors = {}
+
+
+with safe_open(
+    f"{target_model_id}/adapter_model.safetensors", framework="pt", device="cpu"
+) as f:
+    for key in f.keys():
+        target_tensors[key] = f.get_tensor(key)
+
+with safe_open(
+    f"{source_model_id}/adapter_model.safetensors", framework="pt", device="cpu"
+) as f:
+    for key in f.keys():
+        source_tensors[key] = f.get_tensor(key)
+
+with safe_open(
+    f"{source_model_id_2}/adapter_model.safetensors", framework="pt", device="cpu"
+) as f:
+    for key in f.keys():
+        reverse_source_tensors[key] = f.get_tensor(key)
 
 
 ##### Load Target Adapter, Merge and Unload
@@ -215,7 +300,9 @@ if not args.DeltaFinished:
     torch.cuda.manual_seed_all(222)
 
     base_model = LlamaForSequenceClassification.from_pretrained(
-        model_id, device_map=load_device, use_safetensors=False
+        model_id,
+        device_map=load_device,
+        use_safetensors=False,
     )  # load_in_8bit=args.quantization, torch_dtype=torch.bfloat16 if args.quantization else torch.float32)
     base_model.config.pad_token_id = tokenizer.pad_token_id
     base_model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
@@ -227,14 +314,21 @@ if not args.DeltaFinished:
         base_model.state_dict()["score.modules_to_save.source.weight"]
         - base_model.state_dict()["score.original_module.weight"]
     )
-    model = amplifyLoraWeights(
-        model_in=model, adapter_name="source", magnitude=args.lambda2
+
+    model = amplifyLoraWeightsTowardsTarget(
+        model_in=model,
+        adapter_name="source",
+        target_tensors=target_tensors,
+        source_tensors=source_tensors,
+        reverse_source_tensors=reverse_source_tensors,
     )
+
+    lambda2_cls = (args.lambda1 - 1) / 2
 
     merged_Source_model = model.merge_and_unload(progressbar=True)
 
     state_dict_S = merged_Source_model.state_dict()
-    state_dict_S["score.weight"] = score_weight_vector * args.lambda2
+    state_dict_S["score.weight"] = score_weight_vector * lambda2_cls
 
     del base_model, model, merged_Target_model, merged_Source_model
 
@@ -243,7 +337,9 @@ if not args.DeltaFinished:
     torch.cuda.manual_seed(222)
     torch.cuda.manual_seed_all(222)
     base_model = LlamaForSequenceClassification.from_pretrained(
-        model_id, device_map=load_device, use_safetensors=False
+        model_id,
+        device_map=load_device,
+        use_safetensors=False,
     )  # load_in_8bit=args.quantization, torch_dtype=torch.bfloat16 if args.quantization else torch.float32)
 
     base_model.config.pad_token_id = tokenizer.pad_token_id
@@ -259,14 +355,21 @@ if not args.DeltaFinished:
         base_model.state_dict()["score.modules_to_save.source_reverse.weight"]
         - base_model.state_dict()["score.original_module.weight"]
     )
-    model = amplifyLoraWeights(
-        model_in=model, adapter_name="source_reverse", magnitude=args.lambda3
+
+    model = amplifyLoraWeightsTowardsTarget(
+        model_in=model,
+        adapter_name="source_reverse",
+        target_tensors=target_tensors,
+        source_tensors=source_tensors,
+        reverse_source_tensors=reverse_source_tensors,
     )
+
+    lambda3_cls = (args.lambda1 - 1) / 2
 
     merged_Source_Reverse_model = model.merge_and_unload(progressbar=True)
 
     state_dict_S_reverse = merged_Source_Reverse_model.state_dict()
-    state_dict_S_reverse["score.weight"] = score_weight_vector * args.lambda3
+    state_dict_S_reverse["score.weight"] = score_weight_vector * lambda3_cls
 
     del base_model, model, merged_Source_Reverse_model
 

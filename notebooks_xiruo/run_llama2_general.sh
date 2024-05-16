@@ -107,20 +107,34 @@
 
 
 # python run_llama2_general.py --model_size=7 --CombinationIdx=6114 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --CombinationIdx=6114 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --CombinationIdx=6114 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" --reverseLabel
+# python run_llama2_general.py --model_size=7 --CombinationIdx=6114 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
+# python run_llama2_general.py --model_size=7 --CombinationIdx=6114 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" --reverseLabel
 
 
 
 # python run_llama2_general.py --model_size=7 --CombinationIdx=11063 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --CombinationIdx=11063 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="1" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --CombinationIdx=11063 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="1" --device="cuda:0"  --reverseLabel
+# python run_llama2_general.py --model_size=7 --CombinationIdx=11063 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="1" --device="cuda:0" 
+# python run_llama2_general.py --model_size=7 --CombinationIdx=11063 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="1" --device="cuda:0"  --reverseLabel
 
 
 
 # python run_llama2_general.py --model_size=7 --dataset="SHAC" --CombinationIdx=1152 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --dataset="SHAC" --CombinationIdx=1152 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" 
-python run_llama2_general.py --model_size=7 --dataset="SHAC" --CombinationIdx=1152 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" --reverseLabel
+# python run_llama2_general.py --model_size=7 --dataset="SHAC" --CombinationIdx=1152 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" 
+# python run_llama2_general.py --model_size=7 --dataset="SHAC" --CombinationIdx=1152 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="2" --device="cuda:0" --reverseLabel
 
 #######  HateSpeech
+
+
+####### CD
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=6621 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=6621 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=6621 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" --reverseLabel
+
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=3636 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=3636 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=3636 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" --reverseLabel
+
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=566 --lora_r=8 --quantization --toPredict='Target' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=566 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0"
+python run_llama2_general.py --dataset="CD" --model_size=7 --CombinationIdx=566 --lora_r=8 --quantization --toPredict='Source' --nTest=200 --batchSize=4 --gpu="0" --device="cuda:0" --reverseLabel
 

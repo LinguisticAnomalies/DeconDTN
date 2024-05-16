@@ -44,6 +44,12 @@ parser.add_argument(
     action="store_true",
     help="Unload to CPU for tensors. This still stores state_dict() on GPU in the end",
 )
+parser.add_argument(
+    "--mntdir",
+    type=str,
+    default="/bime-munin/",
+    help="Number of testing samples",
+)
 args = parser.parse_args()
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -116,13 +122,14 @@ name_pre = tmp[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-
 model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
 
-model_id = f"/bime-munin/llama2_hf/llama-2-{model_size}b_hf/"
+model_id = f"/{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
 weights_delta_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-delta.pth"
 weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-added.pth"
 
+os.makedirs(args.weightsEditedDir, exist_ok=True)
 
 ##### Tokenizer
-tokenizer = LlamaTokenizer.from_pretrained(f"/bime-munin/llama2_hf/llama-2-7b_hf/")
+tokenizer = LlamaTokenizer.from_pretrained(f"/{args.mntdir}/llama2_hf/llama-2-7b_hf/")
 
 tokenizer.add_special_tokens({"pad_token": "<pad>"})
 

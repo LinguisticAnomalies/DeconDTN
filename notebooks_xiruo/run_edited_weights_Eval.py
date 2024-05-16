@@ -37,8 +37,7 @@ sys.path.append("../src")
 sys.path.append("../config")
 
 from utils import number_split, create_mix
-from sampling_numbers import HateSpeech_DICT, SHAC_DICT
-
+from sampling_numbers import HateSpeech_DICT, SHAC_DICT, CD_DICT
 from pathlib import Path
 import itertools
 from tqdm.auto import tqdm
@@ -135,6 +134,28 @@ elif args.dataset == "HateSpeech":
     domain_col = "dfSource"
     df0 = df_dynGen
     df1 = df_wsf
+
+    c = HateSpeech_DICT[f"c_n{n_test}_{pick_C}"]
+
+elif args.dataset == "CD":
+    df_avh = pd.read_csv(f"{args.inferencePathPrefix}_df_avh.csv")
+    df_r56 = pd.read_csv(f"{args.inferencePathPrefix}_df_r56.csv")
+
+    p_pos_train_z0_ls = HateSpeech_DICT["Run-1"]["p_pos_train_z0_ls"]
+    p_pos_train_z1_ls = HateSpeech_DICT["Run-1"]["p_pos_train_z1_ls"]
+    p_mix_z1_ls = HateSpeech_DICT["Run-1"]["p_mix_z1_ls"]
+
+    z_Categories = [
+        "avh",
+        "r56",
+    ]  # the order here matters! Should match with df0, df1
+    label = "label_binary"
+    split_label = "label_binary"
+    n_zCats = len(z_Categories)
+    txt_col = "text"
+    domain_col = "dfSource"
+    df0 = df_avh
+    df1 = df_r56
 
     c = HateSpeech_DICT[f"c_n{n_test}_{pick_C}"]
 
@@ -257,7 +278,6 @@ tmp_df["combination"] = valid_n_full_settings
 #         _tmp.append(_dt.iloc[sampler, :])
 
 # tmp_df = pd.concat(_tmp)
-
 valid_full_settings = tmp_df["combination"]
 
 

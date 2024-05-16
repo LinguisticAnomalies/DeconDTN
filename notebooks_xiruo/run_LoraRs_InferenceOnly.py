@@ -13,7 +13,9 @@ parser.add_argument("--output_dir", type=str, help="Directory to save outputs")
 parser.add_argument(
     "-q", "--quantization", action="store_true", help="whether to use quantization"
 )
-parser.add_argument("--weightsEdited", type=str, help="Path to edited weights")
+parser.add_argument(
+    "--target_model_id", type=str, help="Directory to the Target adapter"
+)
 parser.add_argument(
     "--sampleValidSettings",
     action="store_true",
@@ -54,11 +56,18 @@ import sys
 sys.path.append("../src")
 sys.path.append("../config")
 
+import peft
+from peft import (
+    get_peft_model,
+    LoraConfig,
+    TaskType,
+    prepare_model_for_int8_training,
+    PeftModel,
+)
 from data_process import load_wls_adress_AddDomain
 from process_SHAC import load_process_SHAC
-from process_CD import load_cd
 from process_HateSpeech import load_HateSpeech_dynGen, load_HateSpeech_wsf
-from sampling_numbers import HateSpeech_DICT, SHAC_DICT, CD_DICT
+from sampling_numbers import HateSpeech_DICT, SHAC_DICT
 
 from tqdm.auto import tqdm
 import numpy as np
@@ -75,17 +84,22 @@ from accelerate.utils import load_and_quantize_model
 from accelerate.utils import BnbQuantizationConfig
 
 
+target_model_id = args.target_model_id
+
+
 class train_config:
     def __init__(self):
         self.quantization: bool = False
 
 
-tmp = [x for x in args.weightsEdited.split("/") if "set-" in x]
-# of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1-added.pth
-name_pre = tmp[0].split(".pth")[0]
-# 7, 13, 70
-model_size = int([x for x in name_pre.split("-") if "B" in x][0].replace("B", ""))
+tmp = [x for x in target_model_id.split("/") if "set-" in x]
+name_pre = tmp[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8
+model_size = int(name_pre.split("-")[-3].replace("B", ""))  # 7, 13, 70
 assert model_size in (7, 13, 70)
+
+model_id = f"{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
+
+
 outdir = args.output_dir
 name_general = f"runningInferenceOnly"
 log_f = f"../log/{name_general}.log"
@@ -112,7 +126,7 @@ else:
     load_state_device = globalconfig.device
 
 
-##### Load Model and  Update using Edited Weights
+##### Load Model
 model = LlamaForSequenceClassification.from_pretrained(
     globalconfig.model_id,
     device_map=load_device,
@@ -125,29 +139,9 @@ model.config.pad_token_id = tokenizer.pad_token_id
 
 model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=128)
 
-# this step cannot be ignored here...
-model.load_state_dict(
-    torch.load(
-        args.weightsEdited,
-        map_location=load_state_device,
-        # map_location=lambda storage, loc: storage,
-    )
+model = PeftModel.from_pretrained(
+    model, target_model_id, adapter_name="target", use_safetensors=False
 )
-
-print("###  Finished Loading...")
-
-if args.quantization:
-    bnb_quantization_config = BnbQuantizationConfig(
-        load_in_8bit=True, llm_int8_threshold=6
-    )
-    model = load_and_quantize_model(
-        model,
-        weights_location=args.weightsEdited,
-        bnb_quantization_config=bnb_quantization_config,
-        device_map=load_device,
-    )
-
-print("###  Finished Quantization...")
 
 
 def do_Inference(_df, txt_col):
@@ -163,6 +157,9 @@ def do_Inference(_df, txt_col):
     lst = list(range(len(df_in["input_ids"])))
     n = args.batch_size
     idx_ls = [lst[i : i + n] for i in range(len(lst)) if i % n == 0]
+
+    ## Do not forget this!
+    model.enable_adapters()
 
     model.eval()
     with torch.no_grad():
@@ -211,17 +208,3 @@ elif args.dataset == "HateSpeech":
 
     df_wsf = do_Inference(df_wsf, txt_col=txt_col)
     df_wsf.to_csv(f"{outdir}/inference_{name_pre}_df_wsf.csv")
-
-elif args.dataset == "CD":
-
-    df_all = load_cd()
-    df_avh = df_all["avh"]
-    df_r56 = df_all["r56"]
-
-    txt_col = "text"
-
-    df_avh = do_Inference(df_avh, txt_col=txt_col)
-    df_avh.to_csv(f"{outdir}/inference_{name_pre}_df_avh.csv")
-
-    df_r56 = do_Inference(df_r56, txt_col=txt_col)
-    df_r56.to_csv(f"{outdir}/inference_{name_pre}_df_r56.csv")

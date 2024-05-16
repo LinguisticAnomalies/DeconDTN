@@ -81,10 +81,11 @@ sys.path.append("../src")
 sys.path.append("../config")
 
 from utils import number_split, create_mix
-from sampling_numbers import HateSpeech_DICT, SHAC_DICT
+from sampling_numbers import HateSpeech_DICT, SHAC_DICT, CD_DICT
 
 from process_HateSpeech import load_HateSpeech_dynGen, load_HateSpeech_wsf
 from process_SHAC import load_process_SHAC
+from process_CD import load_cd
 
 
 class train_config:
@@ -131,7 +132,11 @@ elif args.dataset == "HateSpeech":
     y_Categories = [0, 1]
     txt_col = "text"
     domain_col = "dfSource"
-
+elif args.dataset == "CD":
+    z_category = ["avh", "r56"]
+    y_Categories = [0, 1]
+    txt_col = "text"
+    domain_col = "dfSource"
 
 if args.toPredict == "Target":
     globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
@@ -142,12 +147,18 @@ if args.toPredict == "Target":
         df_shac = load_process_SHAC(replaceNA="all")
         df_shac["label_binary"] = df_shac.apply(lambda x: 1 if x[label] else 0, axis=1)
         df_shac["dfSource"] = df_shac[domain_col]
-        
+
     elif args.dataset == "HateSpeech":
         label = "label"
         ## Hate Speech data already have "label_binary" and dfSource
         df_dynGen = load_HateSpeech_dynGen()
         df_wsf = load_HateSpeech_wsf()
+    elif args.dataset == "CD":
+        label = "label"
+
+        df_all = load_cd()
+        df_avh = df_all["avh"]
+        df_r56 = df_all["r56"]
 
     label2id = {z: idx for idx, z in zip(range(len(y_Categories)), y_Categories)}
     id2label = {idx: z for idx, z in zip(range(len(y_Categories)), y_Categories)}
@@ -160,7 +171,7 @@ elif args.toPredict == "Source":
     if args.reverseLabel:
         z_category.reverse()
         globalconfig.output_dir = f"{args.mntdir}/xiruod/llama2_{args.dataset}/n{args.nTest}/Reverse-Source-set-{args.CombinationIdx}-{dir_q_snippet}-epoch{globalconfig.num_train_epochs}-llama-2-{args.model_size}B-loraR-{args.lora_r}"
-    
+
     label2id = {z: idx for idx, z in zip(range(len(z_category)), z_category)}
     id2label = {idx: z for idx, z in zip(range(len(z_category)), z_category)}
 
@@ -169,7 +180,7 @@ elif args.toPredict == "Source":
 
         df_shac["label_binary"] = df_shac.apply(lambda x: label2id[x[label]], axis=1)
         df_shac["dfSource"] = df_shac[domain_col]
-        
+
     elif args.dataset == "HateSpeech":
         df_dynGen = load_HateSpeech_dynGen()
         df_wsf = load_HateSpeech_wsf()
@@ -181,6 +192,17 @@ elif args.toPredict == "Source":
             lambda x: label2id[x[label]], axis=1
         )
         df_wsf["label_binary"] = df_wsf.apply(lambda x: label2id[x[label]], axis=1)
+
+    elif args.dataset == "CD":
+        df_all = load_cd()
+        df_avh = df_all["avh"]
+        df_r56 = df_all["r56"]
+
+        df_avh.rename(columns={"label_binary": "target_binary"}, inplace=True)
+        df_r56.rename(columns={"label_binary": "target_binary"}, inplace=True)
+
+        df_avh["label_binary"] = df_avh.apply(lambda x: label2id[x[label]], axis=1)
+        df_r56["label_binary"] = df_r56.apply(lambda x: label2id[x[label]], axis=1)
 
 else:
     sys.exit("Unknown Outcome: 'Target' and 'Source' ONLY")
@@ -202,6 +224,13 @@ elif args.dataset == "HateSpeech":
     df_split_label = "label_binary" if args.toPredict == "Target" else "target_binary"
 
     c = HateSpeech_DICT[f"c_n{n_test}_{pick_C}"]  # e.g.: "c_n1000_9870"
+
+elif args.dataset == "CD":
+    df0 = df_avh
+    df1 = df_r56
+    df_split_label = "label_binary" if args.toPredict == "Target" else "target_binary"
+
+    c = CD_DICT[f"c_n{n_test}_{pick_C}"]  # e.g.: "c_n200_566"
 
 
 # run for check valid settings
