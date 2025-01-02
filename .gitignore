@@ -9,3 +9,6 @@ notebooks_xiruo/data
 notebooks_xiruo/~
 log
 logsTensorBoard
+private_notes
+.vscode
+.virtual_documents

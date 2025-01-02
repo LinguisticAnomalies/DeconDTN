@@ -158,11 +158,11 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_4.0-lambda2_3.0-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.1-lambda2_0.1-added-ntest_200-Runs_5",
@@ -183,7 +183,6 @@ def get_coefLog10(x, y):
 # subdir = "original"
 
 
-
 # fnames = [
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-added-ntest_200-Runs_5",
@@ -196,15 +195,15 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.7-lambda2_0.7-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.05-lambda2_0.05-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_1.0-added-ntest_200-Runs_5",
@@ -212,7 +211,7 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-added-ntest_200-Runs_5",
@@ -227,7 +226,7 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_ReverseSource/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
-    
+
 # ]
 # subdir = "ReverseSource"
 
@@ -235,35 +234,35 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.0-lambda2_0.0-lambda3_0.0-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.0-lambda3_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.0-lambda3_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.0-lambda3_1.0-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-lambda3_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-lambda3_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_1.0-lambda3_0.0-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_1.0-lambda3_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_1.0-lambda3_1.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_3.0-lambda2_1.0-lambda3_1.0-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.5-lambda3_0.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.5-lambda3_0.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.0-lambda2_0.5-lambda3_0.5-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.6-lambda2_0.3-lambda3_0.3-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.6-lambda2_0.3-lambda3_0.3-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.6-lambda2_0.3-lambda3_0.3-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.6-lambda2_0.8-lambda3_0.8-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.6-lambda2_0.8-lambda3_0.8-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_2.6-lambda2_0.8-lambda3_0.8-added-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
-    
+
 
 # ]
 # subdir = "threeLambdas"
@@ -273,16 +272,17 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_S-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
-    
-   
-    
+
+
 
 # ]
+
+
 # subdir = "threeLambdas_proj"
 
 # fnames = [
@@ -300,7 +300,7 @@ def get_coefLog10(x, y):
 # subdir = "loras"
 
 # fnames = [
-    
+
 #     "../output/tmpData/SHAC_norm_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S-ntest_200-Runs_5",
@@ -313,7 +313,7 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_norm/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-added-Norm-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_norm/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_norm/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-ntest_200-Runs_5",
@@ -326,12 +326,12 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_0.3-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_1.0-lambda3_0.3-added-Proj_S-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.3-lambda2_1.0-lambda3_0.3-added-Proj_S-ntest_200-Runs_5",
-    
+
 #     "../output/tmpData/SHAC_proj/Eval-set-1152-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-lambda3_1.0-added-Proj_RS-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-6114-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S-ntest_200-Runs_5",
 #     "../output/tmpData/SHAC_proj/Eval-set-11063-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.0-lambda3_0.5-added-Proj_S-ntest_200-Runs_5",
-    
+
 # ]
 # subdir = "threeLambdas_proj"
 
@@ -443,15 +443,15 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
-    
-    
+
+
 # ]
 # subdir = "original"
 
 
 
 # fnames = [
-    
+
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.0-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.5-added-ntest_200-Runs_5",
@@ -461,14 +461,14 @@ def get_coefLog10(x, y):
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.5-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_1.75-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech_ReverseSource/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_2.0-added-ntest_200-Runs_5",
-    
-    
+
+
 # ]
 # subdir = "ReverseSource"
 
 
 # fnames = [
-    
+
 #     "../output/tmpData/HateSpeech/Eval-set-566-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech/Eval-set-3636-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
 #     "../output/tmpData/HateSpeech/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_0.25-lambda3_0.25-added-ntest_200-Runs_5",
@@ -479,29 +479,99 @@ def get_coefLog10(x, y):
 
 # fnames = [
 #     "../output/tmpData/HateSpeech_norm_proj/Eval-set-6621-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-added-Norm-Proj_S-ntest_200-Runs_5",
-    
+
 # ]
 # subdir = "threeLambdas_norm_proj"
 
 # dataset_name = 'HateSpeech'
 
 
+###-------------- Llama
+# useLambda = True
+
+# # dataset_name = 'SHAC'
+# # set_ls = [1152, 6114, 11063]
+# # set_ls = [11063]
+
+# dataset_name = 'HateSpeech'
+# set_ls = [6621]
+# # set_ls = [566, 3636, 6621]
+# # # set_ls = [3636]
+
+# # dataset_name = 'CD'
+# # set_ls = [566, 3636, 6621]
+# # # set_ls = [566]
+
+
+# # original_template = "../output/tmpData/{}/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_{}-lambda2_{}-added-ntest_200-Runs_5"
+# # subdir = "original"
+# original_template = "../output/tmpData/{}_ReverseSource/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_{}-lambda2_{}-added-ntest_200-Runs_5"
+# subdir = "ReverseSource"
+
+# outdir = f"../output/tmpData/{dataset_name}/summary/{subdir}"
+
+# # lambda2_ls = ['0.0', '0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0']
+
+# # fnames = [original_template.format(dataset_name, s, 1.5, l2) for s, l2 in itertools.product(set_ls, lambda2_ls)]
+# # fnames.extend([original_template.format(dataset_name, s, 1.0, l2) for s, l2 in itertools.product(set_ls, [0.0, 1.0])])
+
+# lambda2_ls = ['0.0', '0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4', '1.6', '1.8', '2.0']
+# fnames = [original_template.format(dataset_name, s, 1.0, l2) for s, l2 in itertools.product(set_ls, lambda2_ls)]
+
+
+##--------------
+
+
+##-------------- Roberta
+useLambda = True
+
+
+dataset_name = 'CD'
+# set_ls = [566, 3636, 6621]
+set_ls = [6621]
+
+# dataset_name = 'HateSpeech'
+# set_ls = [566, 3636, 6621]
+
 
 # dataset_name = 'SHAC'
 # set_ls = [1152, 6114, 11063]
-
-dataset_name = 'HateSpeech'
-set_ls = [566, 3636, 6621]
+# # set_ls = [11063]
 
 
-lambda2_ls = ['0.0', '0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0']
 
-original_template = "../output/tmpData/{}/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_{}-added-ntest_200-Runs_5"
-subdir = "original"
-# original_template = "../output/tmpData/{}_ReverseSource/Eval-set-{}-quantization-epoch3-llama-2-7B-loraR-8-lambda1_1.5-lambda2_{}-added-ntest_200-Runs_5"
-# subdir = "ReverseSource"
+# original_template = "../output/roberta/{}/Eval-set-{}-epoch3-lambda1_{}-lambda2_{}-added-ntest_200-Runs_5"
+# subdir = "original"
+original_template = "../output/roberta/{}_ReverseSource/Eval-set-{}-epoch3-lambda1_{}-lambda2_{}-added-ntest_200-Runs_5"
+subdir = "ReverseSource"
 
-fnames = [original_template.format(dataset_name, s, l) for s, l in itertools.product(set_ls, lambda2_ls)]
+outdir = f"../output/roberta/{dataset_name}/summary/{subdir}"
+
+# lambda2_ls = ['0.0', '0.25', '0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0']
+# fnames = [original_template.format(dataset_name, s, 1.5, l2) for s, l2 in itertools.product(set_ls, lambda2_ls)]
+# fnames.extend([original_template.format(dataset_name, s, 1.0, l2) for s, l2 in itertools.product(set_ls, [0.0, 1.0])])
+
+lambda2_ls = ['0.0', '0.2', '0.4', '0.6', '0.8', '1.0', '1.2', '1.4', '1.6', '1.8', '2.0']
+
+fnames = [original_template.format(dataset_name, s, 1.0, l2) for s, l2 in itertools.product(set_ls, lambda2_ls)]
+
+##--------------
+
+
+
+# ##-------------- Backdoor
+# useLambda = False
+# # dataset_name = "CD"
+# dataset_name = "HateSpeech"
+# fnames = [f"../output/backdoor/{dataset_name}/backdoor/Eval-set-566-irun-0-ntest_200-Runs_5",
+#           f"../output/backdoor/{dataset_name}/backdoor/Eval-set-6621-irun-0-ntest_200-Runs_5"
+#           ]
+
+
+# outdir = f"../output/backdoorAsBaselineForTaskVectorsSummary/{dataset_name}/summary/backdoor/"
+
+
+# ##--------------
 
 
 
@@ -520,7 +590,6 @@ def getSummary(fname, dataset_name):
         alpha_train = 5
 
     # alpha_train = 1
-    
     alpha_train_recip = 1 / alpha_train
 
     _df = df.copy()
@@ -554,6 +623,14 @@ def getSummary(fname, dataset_name):
     y_min_ls = []
     y_alpha_train = []
     y_alpha_train_recip = []
+    y_alpha_train_1 = []
+    
+    # auprc_df0_train_recip = []
+    # auprc_df1_train_recip = []
+    # n_z0_pos_test = []
+    # n_z0_neg_test = []
+    # n_z1_pos_test = []
+    # n_z1_neg_test = []
 
     for item, color in zip(_df_plt.groupby("C_y"), my_palette):
         for iy, ylabel in enumerate([y_name]):
@@ -598,6 +675,25 @@ def getSummary(fname, dataset_name):
             y_alpha_train_recip.append(
                 np.mean(tmpdf[tmpdf["alpha_test"] == alpha_train_recip][y_name])
             )
+            y_alpha_train_1.append(
+                np.mean(tmpdf[tmpdf["alpha_test"] == 1][y_name])
+            )
+            
+#             assert tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z0_pos_test'].nunique() == 1
+#             assert tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z0_neg_test'].nunique() == 1
+#             assert tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z1_pos_test'].nunique() == 1
+#             assert tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z1_neg_test'].nunique() == 1
+            
+#             auprc_df0_train_recip.append(
+#                 np.mean(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]["auprc_weightsEdited_df0"])
+#             )
+#             auprc_df1_train_recip.append(
+#                 np.mean(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]["auprc_weightsEdited_df1"])
+#             )
+#             n_z0_pos_test.append(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z0_pos_test'].unique()[0])
+#             n_z0_neg_test.append(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z0_neg_test'].unique()[0])
+#             n_z1_pos_test.append(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z1_pos_test'].unique()[0])
+#             n_z1_neg_test.append(tmpdf[tmpdf["alpha_test"] == alpha_train_recip]['n_z1_neg_test'].unique()[0])
 
 
     df_summary = pd.DataFrame(
@@ -613,6 +709,14 @@ def getSummary(fname, dataset_name):
             "y_min": y_min_ls,
             "y_alpha_train": y_alpha_train,
             "y_alpha_train_recip": y_alpha_train_recip,
+            "y_alpha_train_1": y_alpha_train_1,
+            # "auprc_df0_train_recip": auprc_df0_train_recip,
+            # "auprc_df1_train_recip": auprc_df1_train_recip,
+            # "n_z0_pos_test": n_z0_pos_test,
+            # "n_z0_neg_test": n_z0_neg_test,
+            # "n_z1_pos_test": n_z1_pos_test,
+            # "n_z1_neg_test": n_z1_neg_test,
+            
         }
     )
     name_base = Path(fname).name
@@ -623,20 +727,22 @@ def getSummary(fname, dataset_name):
     # df_summary['loraR'] = int([x for x in name_base.split("_") if 'loraR' in x][0].split("-")[2])
 
     df_summary["set"] = name_base.split("-")[2]
-    df_summary["lambda1"] = float(
-        [x for x in name_base.split("-") if x.startswith("lambda1")][0].split("_")[1]
-    )
-    if 'lambda2' in fname:
-        df_summary["lambda2"] = float(
-            [x for x in name_base.split("-") if x.startswith("lambda2")][0].split("_")[1]
-        )
 
-    if "lambda3" in fname:
-        df_summary["lambda3"] = float(
-            [x for x in name_base.split("-") if x.startswith("lambda3")][0].split("_")[
-                1
-            ]
+    if useLambda:
+        df_summary["lambda1"] = float(
+            [x for x in name_base.split("-") if x.startswith("lambda1")][0].split("_")[1]
         )
+        if 'lambda2' in fname:
+            df_summary["lambda2"] = float(
+                [x for x in name_base.split("-") if x.startswith("lambda2")][0].split("_")[1]
+            )
+
+        if "lambda3" in fname:
+            df_summary["lambda3"] = float(
+                [x for x in name_base.split("-") if x.startswith("lambda3")][0].split("_")[
+                    1
+                ]
+            )
 
     df_summary["pred_lowerdiff"] = df_summary["predMidpoint"] - df_summary["pred_lower"]
     df_summary["pred_upperdiff"] = df_summary["pred_upper"] - df_summary["predMidpoint"]
@@ -644,7 +750,6 @@ def getSummary(fname, dataset_name):
     df_summary["coef_lowerdiff"] = df_summary["coef"] - df_summary["coef_lower"]
     df_summary["coef_upperdiff"] = df_summary["coef_upper"] - df_summary["coef"]
 
-    outdir = f"../output/tmpData/{dataset_name}/summary/{subdir}"
     os.makedirs(outdir, exist_ok=True)
 
     df_summary.to_csv(f"{outdir}/{name_base}.csv")

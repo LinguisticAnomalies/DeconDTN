@@ -14,6 +14,9 @@ parser.add_argument("--inferencePathPrefix", type=str, help="Path to inference f
 parser.add_argument("--output_dir", type=str, help="Directory to save outputs")
 parser.add_argument("--nRuns", type=int, default=1, help="Number of experiments to run")
 parser.add_argument("--nTest", type=int, default=None, help="Size of testing set")
+parser.add_argument(
+    "--bert", action="store_true", help="if the model is Llama or BERT-like"
+)
 # parser.add_argument(
 #     "--percent", type=int, default=5, help="X% of total setting will be used"
 # )
@@ -36,7 +39,7 @@ import sys
 sys.path.append("../src")
 sys.path.append("../config")
 
-from utils import number_split, create_mix
+from utils import number_split, create_mix, appendMetrics
 from sampling_numbers import HateSpeech_DICT, SHAC_DICT, CD_DICT
 from pathlib import Path
 import itertools
@@ -73,8 +76,9 @@ runs = args.nRuns
 
 # of form like inference_set-1355-quantization-epoch3-llama-2-7B-loraR-8-gamma_1-added
 name_pre = Path(args.inferencePathPrefix).name.split("inference_")[1]
-model_size = int([x for x in name_pre.split("-") if "B" in x][0].replace("B", ""))
-assert model_size in (7, 13, 70)
+if not args.bert:
+    model_size = int([x for x in name_pre.split("-") if "B" in x][0].replace("B", ""))
+    assert model_size in (7, 13, 70)
 
 outdir = args.output_dir
 
@@ -86,8 +90,10 @@ pick_C = int(_name_split[_name_split.index("set") + 1])
 
 
 globalconfig = train_config()
-globalconfig.model_id = f"{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
-globalconfig.max_seq_length = 1024
+
+if not args.bert:
+    globalconfig.model_id = f"{args.mntdir}/llama2_hf/llama-2-{model_size}b_hf/"
+    globalconfig.max_seq_length = 1024
 
 y_Categories = [0, 1]
 n_yCats = len(y_Categories)
@@ -141,9 +147,9 @@ elif args.dataset == "CD":
     df_avh = pd.read_csv(f"{args.inferencePathPrefix}_df_avh.csv")
     df_r56 = pd.read_csv(f"{args.inferencePathPrefix}_df_r56.csv")
 
-    p_pos_train_z0_ls = HateSpeech_DICT["Run-1"]["p_pos_train_z0_ls"]
-    p_pos_train_z1_ls = HateSpeech_DICT["Run-1"]["p_pos_train_z1_ls"]
-    p_mix_z1_ls = HateSpeech_DICT["Run-1"]["p_mix_z1_ls"]
+    p_pos_train_z0_ls = CD_DICT["Run-1"]["p_pos_train_z0_ls"]
+    p_pos_train_z1_ls = CD_DICT["Run-1"]["p_pos_train_z1_ls"]
+    p_mix_z1_ls = CD_DICT["Run-1"]["p_mix_z1_ls"]
 
     z_Categories = [
         "avh",
@@ -157,7 +163,7 @@ elif args.dataset == "CD":
     df0 = df_avh
     df1 = df_r56
 
-    c = HateSpeech_DICT[f"c_n{n_test}_{pick_C}"]
+    c = CD_DICT[f"c_n{n_test}_{pick_C}"]
 
 
 ############ Diff Out Dataset used in LoRA Fine-Tuning
@@ -286,35 +292,10 @@ valid_full_settings = tmp_df["combination"]
 os.makedirs(outdir, exist_ok=True)
 
 random.seed(123)
-auprc_weightsEdited = []
-auprc_weightsEdited_df0 = []
-auprc_weightsEdited_df1 = []
-auroc_weightsEdited = []
-auroc_weightsEdited_df0 = []
-auroc_weightsEdited_df1 = []
 
 record_valid_settings_n = []
 
-
-precision_weightsEdited = []
-recall_weightsEdited = []
-f1_weightsEdited = []
-precision_weightsEdited_df0 = []
-recall_weightsEdited_df0 = []
-f1_weightsEdited_df0 = []
-precision_weightsEdited_df1 = []
-recall_weightsEdited_df1 = []
-f1_weightsEdited_df1 = []
-
-# precision_vanilla = []
-# recall_vanilla = []
-# f1_vanilla = []
-# precision_vanilla_df0 = []
-# recall_vanilla_df0 = []
-# f1_vanilla_df0 = []
-# precision_vanilla_df1 = []
-# recall_vanilla_df1 = []
-# f1_vanilla_df1 = []
+retMetrics = {}
 
 
 for iRun in range(runs):
@@ -363,114 +344,65 @@ for iRun in range(runs):
 
         ret_code = 1
 
-        auprc_weightsEdited.append(
-            metrics.average_precision_score(
-                y_true=y_test, y_score=y_probs_auprc_weightsEdited[:, 1]
-            )
-        )
-        auprc_weightsEdited_df0.append(
-            metrics.average_precision_score(
-                y_true=y_test[dfs["test"][domain_col] == z_Categories[0]],
-                y_score=y_probs_auprc_weightsEdited[
-                    dfs["test"][domain_col] == z_Categories[0], 1
-                ],
-            )
-        )
-        auprc_weightsEdited_df1.append(
-            metrics.average_precision_score(
-                y_true=y_test[dfs["test"][domain_col] == z_Categories[1]],
-                y_score=y_probs_auprc_weightsEdited[
-                    dfs["test"][domain_col] == z_Categories[1], 1
-                ],
-            )
-        )
-        auroc_weightsEdited.append(
-            roc_auc_score(y_true=y_test, y_score=y_probs_auprc_weightsEdited[:, 1])
-        )
-        auroc_weightsEdited_df0.append(
-            roc_auc_score(
-                y_true=y_test[dfs["test"][domain_col] == z_Categories[0]],
-                y_score=y_probs_auprc_weightsEdited[
-                    dfs["test"][domain_col] == z_Categories[0], 1
-                ],
-            )
-        )
-        auroc_weightsEdited_df1.append(
-            roc_auc_score(
-                y_true=y_test[dfs["test"][domain_col] == z_Categories[1]],
-                y_score=y_probs_auprc_weightsEdited[
-                    dfs["test"][domain_col] == z_Categories[1], 1
-                ],
-            )
-        )
-        t = precision_recall_fscore_support(
+        idx_df0 = dfs["test"][domain_col] == z_Categories[0]
+        idx_df1 = dfs["test"][domain_col] == z_Categories[1]
+
+        _ = appendMetrics(
+            ret=retMetrics,
+            sufix="weightsEdited",
             y_true=y_test,
-            y_pred=y_probs_auprc_weightsEdited[:, 1] > 0.5,
-            average="binary",
-            pos_label=1,
+            y_prob=y_probs_auprc_weightsEdited[:, 1],
+            f1_cutoff=0.5,
         )
-        t_df0 = precision_recall_fscore_support(
-            y_true=y_test[dfs["test"][domain_col] == z_Categories[0]],
-            y_pred=y_probs_auprc_weightsEdited[
-                dfs["test"][domain_col] == z_Categories[0], 1
-            ]
-            > 0.5,
-            average="binary",
-            pos_label=1,
+        _ = appendMetrics(
+            ret=retMetrics,
+            sufix="weightsEdited_df0",
+            y_true=y_test[idx_df0],
+            y_prob=y_probs_auprc_weightsEdited[idx_df0, 1],
+            f1_cutoff=0.5,
         )
-        t_df1 = precision_recall_fscore_support(
-            y_true=y_test[dfs["test"][domain_col] == z_Categories[1]],
-            y_pred=y_probs_auprc_weightsEdited[
-                dfs["test"][domain_col] == z_Categories[1], 1
-            ]
-            > 0.5,
-            average="binary",
-            pos_label=1,
+        _ = appendMetrics(
+            ret=retMetrics,
+            sufix="weightsEdited_df1",
+            y_true=y_test[idx_df1],
+            y_prob=y_probs_auprc_weightsEdited[idx_df1, 1],
+            f1_cutoff=0.5,
         )
-        precision_weightsEdited.append(t[0])
-        recall_weightsEdited.append(t[1])
-        f1_weightsEdited.append(t[2])
-        precision_weightsEdited_df0.append(t_df0[0])
-        recall_weightsEdited_df0.append(t_df0[1])
-        f1_weightsEdited_df0.append(t_df0[2])
-        precision_weightsEdited_df1.append(t_df1[0])
-        recall_weightsEdited_df1.append(t_df1[1])
-        f1_weightsEdited_df1.append(t_df1[2])
 
 
 ############  Put Results in DataFrame, with extra information (a little redundant)
 
 # organize results in DataFrame
-df_eval = pd.DataFrame(
-    {
-        "auprc_weightsEdited": auprc_weightsEdited,
-        "auprc_weightsEdited_df0": auprc_weightsEdited_df0,
-        "auprc_weightsEdited_df1": auprc_weightsEdited_df1,
-        "precision_weightsEdited": precision_weightsEdited,
-        "recall_weightsEdited": recall_weightsEdited,
-        "f1_weightsEdited": f1_weightsEdited,
-        "precision_weightsEdited_df0": precision_weightsEdited_df0,
-        "recall_weightsEdited_df0": recall_weightsEdited_df0,
-        "f1_weightsEdited_df0": f1_weightsEdited_df0,
-        "precision_weightsEdited_df1": precision_weightsEdited_df1,
-        "recall_weightsEdited_df1": recall_weightsEdited_df1,
-        "f1_weightsEdited_df1": f1_weightsEdited_df1,
-        # "auprc_logistic_vanilla_df0": auprc_logistic_vanilla_df0,
-        # "auprc_logistic_vanilla_df1": auprc_logistic_vanilla_df1,
-        # "precision_vanilla":precision_vanilla,
-        # "recall_vanilla":recall_vanilla,
-        # "f1_vanilla":f1_vanilla,
-        # "precision_vanilla_df0":precision_vanilla_df0,
-        # "recall_vanilla_df0":recall_vanilla_df0,
-        # "f1_vanilla_df0":f1_vanilla_df0,
-        # "precision_vanilla_df1":precision_vanilla_df1,
-        # "recall_vanilla_df1":recall_vanilla_df1,
-        # "f1_vanilla_df1":f1_vanilla_df1,
-        "auroc_weightsEdited": auroc_weightsEdited,
-        "auroc_weightsEdited_df0": auroc_weightsEdited_df0,
-        "auroc_weightsEdited_df1": auroc_weightsEdited_df1,
-    }
-)
+df_eval = pd.DataFrame(retMetrics)
+#     {
+#         "auprc_weightsEdited": auprc_weightsEdited,
+#         "auprc_weightsEdited_df0": auprc_weightsEdited_df0,
+#         "auprc_weightsEdited_df1": auprc_weightsEdited_df1,
+#         "precision_weightsEdited": precision_weightsEdited,
+#         "recall_weightsEdited": recall_weightsEdited,
+#         "f1_weightsEdited": f1_weightsEdited,
+#         "precision_weightsEdited_df0": precision_weightsEdited_df0,
+#         "recall_weightsEdited_df0": recall_weightsEdited_df0,
+#         "f1_weightsEdited_df0": f1_weightsEdited_df0,
+#         "precision_weightsEdited_df1": precision_weightsEdited_df1,
+#         "recall_weightsEdited_df1": recall_weightsEdited_df1,
+#         "f1_weightsEdited_df1": f1_weightsEdited_df1,
+#         # "auprc_logistic_vanilla_df0": auprc_logistic_vanilla_df0,
+#         # "auprc_logistic_vanilla_df1": auprc_logistic_vanilla_df1,
+#         # "precision_vanilla":precision_vanilla,
+#         # "recall_vanilla":recall_vanilla,
+#         # "f1_vanilla":f1_vanilla,
+#         # "precision_vanilla_df0":precision_vanilla_df0,
+#         # "recall_vanilla_df0":recall_vanilla_df0,
+#         # "f1_vanilla_df0":f1_vanilla_df0,
+#         # "precision_vanilla_df1":precision_vanilla_df1,
+#         # "recall_vanilla_df1":recall_vanilla_df1,
+#         # "f1_vanilla_df1":f1_vanilla_df1,
+#         "auroc_weightsEdited": auroc_weightsEdited,
+#         "auroc_weightsEdited_df0": auroc_weightsEdited_df0,
+#         "auroc_weightsEdited_df1": auroc_weightsEdited_df1,
+#     }
+#
 
 
 for k in record_valid_settings_n[0]["mix_param_dict"].keys():

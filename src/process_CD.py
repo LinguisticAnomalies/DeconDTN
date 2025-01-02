@@ -5,7 +5,7 @@ import pandas as pd
 
 sys.path.insert(
     0,
-    "/edata/CohenLybarger/xiruo_Project/cognitive_distortions_Transfer_Learning_GitLab/",
+    "/edata/CohenLybarger/xiruo_Project/cognitive_distortions_Transfer_Learning_GitLab",
 )
 
 from src.data_load import load_avh, load_r56

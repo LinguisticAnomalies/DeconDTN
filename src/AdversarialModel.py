@@ -12,10 +12,13 @@ from transformers import get_scheduler
 # from torch.nn import BCEWithLogitsLoss
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
-from src.NeuralModel import TransformerDataset
+
+# from src.NeuralModel import TransformerDataset
+from NeuralModel import TransformerDataset
 
 import transformers
-from transformers import BertModel
+# from transformers import BertModel
+from transformers import AutoModel
 
 
 transformers.logging.set_verbosity_error()
@@ -50,7 +53,7 @@ class twoHeadsModel(torch.nn.Module):
         self.hidden_dropout_prob = hidden_dropout_prob
 
         self.dropout = torch.nn.Dropout(self.hidden_dropout_prob)
-        self.bert = BertModel.from_pretrained(self.pretrained, use_auth_token=True)
+        self.bert = AutoModel.from_pretrained(self.pretrained, use_auth_token=True)
         self.hidden_size = self.bert.pooler.dense.out_features
         self.main_classifier_layer = torch.nn.Linear(
             in_features=self.hidden_size, out_features=num_labels, bias=True
@@ -101,7 +104,6 @@ class GradientReverseModel:
         grad_norm=1.0,
         grad_reverse=False,
     ):
-
         """init
 
         Args:
@@ -243,8 +245,8 @@ class GradientReverseModel:
                 optimizer.zero_grad()
                 # progress_bar.update(1)
 
-            self.trainMainEpochLossAvg.append(loss_epoch_main/n_train)
-            self.trainDomainEpochLossAvg.append(loss_epoch_domain/n_train)
+            self.trainMainEpochLossAvg.append(loss_epoch_main / n_train)
+            self.trainDomainEpochLossAvg.append(loss_epoch_domain / n_train)
 
     def trainModelWithTest(
         self, X, y, y_domain_train, X_test, y_test, y_domain_test, device=None

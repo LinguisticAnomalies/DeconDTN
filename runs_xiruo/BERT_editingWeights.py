@@ -104,18 +104,27 @@ else:
 tmp = [x for x in target_model_id.split("/") if "set-" in x]
 name_pre = tmp[0]  # of form like set-1355-quantization-epoch3-llama-2-7B-loraR-8
 
-weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1:.1f}-lambda2_{args.lambda2:.1f}-added.pth"
+weights_edited_file = f"{args.weightsEditedDir}/{os.path.basename(target_model_id)}-lambda1_{args.lambda1}-lambda2_{args.lambda2}-added.pth"
 
 os.makedirs(args.weightsEditedDir, exist_ok=True)
 
+### Only Q and V and Classifier
+# def amplifyWeights(model_in, magnitude=1.0):
+#     ret = {}
+#     for wname, W in model_in.named_parameters():
+#         if ("query" in wname) or ("value" in wname) or ("classifier" in wname):
+#             W.data = (W.data - state_dict_oT[wname]) * magnitude
 
+#             ret[wname] = W.data
+#     return ret
+
+### All weights
 def amplifyWeights(model_in, magnitude=1.0):
     ret = {}
     for wname, W in model_in.named_parameters():
-        if ("query" in wname) or ("value" in wname) or ("classifier" in wname):
-            W.data = (W.data - state_dict_oT[wname]) * magnitude
+        W.data = (W.data - state_dict_oT[wname]) * magnitude
 
-            ret[wname] = W.data
+        ret[wname] = W.data
     return ret
 
 

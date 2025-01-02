@@ -455,4 +455,33 @@ CD_DICT = {
             'C_y_test': 0.3
             },
     },
+
+    ## for testing purpose
+    "c_n200_222": {
+        'n_train': 800,
+        'n_test': 200,
+        'n_z0_pos_train': 200,
+        'n_z0_neg_train': 200,
+        'n_z0_pos_test': 30,
+        'n_z0_neg_test': 70,
+        'n_z1_pos_train': 40,
+        'n_z1_neg_train': 360,
+        'n_z1_pos_test': 30,
+        'n_z1_neg_test': 70,
+        'mix_param_dict': {
+            'p_pos_train_z0': 0.5,
+            'p_pos_train_z1': 0.1,
+            'p_pos_train': 0.3,
+            'p_pos_test': 0.3,
+            'p_mix_z0': 0.5,
+            'p_mix_z1': 0.5,
+            'alpha_train': 0.2,
+            'alpha_test': 1.0,
+            'p_pos_test_z0': 0.3,
+            'p_pos_test_z1': 0.3,
+            'C_y': 0.3,
+            'C_z': 0.5,
+            'C_y_test': 0.3
+            },
+    },
 }

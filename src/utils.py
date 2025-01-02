@@ -2,11 +2,22 @@ import math
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.calibration import calibration_curve
+from sklearn.linear_model import LinearRegression
 import itertools
 import warnings
 
 
-def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test, holdCy=True, p_pos_test_z1=None, p_pos_test_z0=None):
+def confoundSplit(
+    p_pos_train_z1,
+    p_pos_train_z0,
+    p_mix_z1,
+    alpha_test,
+    holdCy=True,
+    p_pos_test_z1=None,
+    p_pos_test_z0=None,
+):
     """Calculate probability constraint given some priors"""
 
     assert 0 <= p_pos_train_z1 <= 1
@@ -25,16 +36,15 @@ def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test, holdCy=T
     if holdCy:
         p_pos_test_z0 = C_y / (1 - (1 - alpha_test) * C_z)
         p_pos_test_z1 = alpha_test * p_pos_test_z0
-        
+
         C_y_test = C_y
-        
+
     else:
         assert 0 <= p_pos_test_z1 <= 1
         assert 0 <= p_pos_test_z0 <= 1
-        
-        alpha_test = p_pos_test_z1/p_pos_test_z0
+
+        alpha_test = p_pos_test_z1 / p_pos_test_z0
         C_y_test = p_mix_z0 * p_pos_test_z0 + p_mix_z1 * p_pos_test_z1
-        
 
     # alpha_test = p_pos_test_z1 / p_pos_test_z0
     alpha_train = p_pos_train_z1 / p_pos_train_z0
@@ -52,12 +62,10 @@ def confoundSplit(p_pos_train_z1, p_pos_train_z0, p_mix_z1, alpha_test, holdCy=T
         "p_pos_test_z1": p_pos_test_z1,
         "C_y": C_y,
         "C_z": C_z,
-        "C_y_test":C_y_test,
+        "C_y_test": C_y_test,
     }
-    
-    
-    return ret
 
+    return ret
 
 
 def confoundSplitNumbers(
@@ -202,10 +210,10 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
     n_z1_pos = setting["n_z1_pos_train"] + setting["n_z1_pos_test"]
     n_z0_neg = setting["n_z0_neg_train"] + setting["n_z0_neg_test"]
     n_z1_neg = setting["n_z1_neg_train"] + setting["n_z1_neg_test"]
-    
-    df0 = df0.assign(_tmpid = lambda x: ["s0_" + str(x) for x in range(len(x))])
-    df1 = df1.assign(_tmpid = lambda x: ["s1_" + str(x) for x in range(len(x))])
-    
+
+    df0 = df0.assign(_tmpid=lambda x: ["s0_" + str(x) for x in range(len(x))])
+    df1 = df1.assign(_tmpid=lambda x: ["s1_" + str(x) for x in range(len(x))])
+
     df0_pos = df0[df0[target] == 1]
     df1_pos = df1[df1[target] == 1]
 
@@ -365,11 +373,10 @@ def create_mix(df1, df0, target, setting, sample=False, seed=2023):
         warnings.warn("Data Leakage!")
         return None
 
-    df_train.drop(['_tmpid'], axis=1, inplace=True)
-    df_test.drop(['_tmpid'], axis=1, inplace=True)
-    
-    return {"train": df_train, "test": df_test, "setting": setting}
+    df_train.drop(["_tmpid"], axis=1, inplace=True)
+    df_test.drop(["_tmpid"], axis=1, inplace=True)
 
+    return {"train": df_train, "test": df_test, "setting": setting}
 
 
 def number_split(
@@ -380,22 +387,23 @@ def number_split(
     train_test_ratio=5,
     n_test=100,  # set the number for tests
     verbose=True,
-    holdCy=True, p_pos_test_z1=None, p_pos_test_z0=None
+    holdCy=True,
+    p_pos_test_z1=None,
+    p_pos_test_z0=None,
 ):
     """Get required number of samples for each category"""
     assert isinstance(train_test_ratio, int)
     assert isinstance(n_test, int)
 
     mix_param_dict = confoundSplit(
-            p_pos_train_z0=p_pos_train_z0,
-            p_pos_train_z1=p_pos_train_z1,
-            p_mix_z1=p_mix_z1,
-            alpha_test=alpha_test,
-            holdCy=holdCy,
-            p_pos_test_z1=p_pos_test_z1,
-            p_pos_test_z0=p_pos_test_z0
-        )
-        
+        p_pos_train_z0=p_pos_train_z0,
+        p_pos_train_z1=p_pos_train_z1,
+        p_mix_z1=p_mix_z1,
+        alpha_test=alpha_test,
+        holdCy=holdCy,
+        p_pos_test_z1=p_pos_test_z1,
+        p_pos_test_z0=p_pos_test_z0,
+    )
 
     if all(
         0 < mix_param_dict[key] < 1
@@ -454,7 +462,6 @@ def number_split(
         )
 
     return None
-
 
 
 def confoundSplitDF(
@@ -673,3 +680,57 @@ def confoundSplitDFMultiLevel(
         df_collect.append(_ret)
 
     return df_collect
+
+
+def getCalibrationSlope(y_true, y_prob, n_bins=10):
+
+    _prob_true, _prob_pred = calibration_curve(
+        y_true=y_true, y_prob=y_prob, n_bins=n_bins
+    )
+    _fc = LinearRegression(fit_intercept=False)
+    calibration_val = _fc.fit(X=_prob_pred.reshape(-1, 1), y=_prob_true).coef_[0]
+
+    return calibration_val
+
+
+def getMetrics(y_true, y_prob, f1_cutoff=0.5):
+
+    auprc = metrics.average_precision_score(y_true=y_true, y_score=y_prob)
+    auroc = metrics.roc_auc_score(y_true=y_true, y_score=y_prob)
+
+    t_vanilla = metrics.precision_recall_fscore_support(
+        y_true=y_true,
+        y_pred=y_prob > f1_cutoff,
+        average="binary",
+        pos_label=1,
+    )
+
+    precision = t_vanilla[0]
+    recall = t_vanilla[1]
+    f1 = t_vanilla[2]
+
+    calibration = getCalibrationSlope(y_true=y_true, y_prob=y_prob, n_bins=10)
+
+    ret = {
+        "auprc": auprc,
+        "auroc": auroc,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "calibration": calibration,
+    }
+
+    return ret
+
+
+def appendMetrics(ret, sufix, **kws):
+    tmp = getMetrics(**kws)
+
+    for k, v in tmp.items():
+        nm = f"{k}_{sufix}"
+
+        if nm not in ret:
+            ret[nm] = []
+        ret[nm].append(v)
+
+    return ret

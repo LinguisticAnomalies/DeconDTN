@@ -295,13 +295,13 @@ model = AutoModelForSequenceClassification.from_pretrained(
     use_safetensors=False,
 )
 
-for wname, W in model.named_parameters():
-    if (
-        ("query" not in wname)
-        and ("value" not in wname)
-        and ("classifier" not in wname)
-    ):
-        W.requires_grad = False
+# for wname, W in model.named_parameters():
+#     if (
+#         ("query" not in wname)
+#         and ("value" not in wname)
+#         and ("classifier" not in wname)
+#     ):
+#         W.requires_grad = False
 
 
 model.train()

@@ -41,12 +41,13 @@ from data_process import load_wls_adress_AddDomain
 from process_SHAC import load_process_SHAC
 from custom_distance import KL
 from process_HateSpeech import load_HateSpeech_dynGen, load_HateSpeech_wsf
+from process_CD import load_cd
 
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--dataset", type=str, choices=["SHAC", "HateSpeech"], help="dataset name"
+    "--dataset", type=str, choices=["SHAC", "HateSpeech", "CD"], help="dataset name"
 )
 parser.add_argument(
     "--transform",
@@ -80,6 +81,19 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
+def confusion_matrix_probs(y_true, y_pred):
+
+    idx = y_true == 0
+    n_t0_p0 = sum(1 - y_pred[:, 1][idx])
+    n_t0_p1 = sum(y_pred[:, 1][idx])
+
+    n_t1_p0 = sum(1 - y_pred[:, 1][~idx])
+    n_t1_p1 = sum(y_pred[:, 1][~idx])
+
+    return np.array([[n_t0_p0, n_t1_p0], [n_t0_p1, n_t1_p1]])
+
+
 ######## Load Data
 if args.dataset == "SHAC":
     df_shac = load_process_SHAC(replaceNA="all")
@@ -96,6 +110,14 @@ elif args.dataset == "HateSpeech":
 
     # n_test = 1000
     n_test = 200
+elif args.dataset == "CD":
+    df_all = load_cd()
+    df_avh = df_all["avh"]
+    df_r56 = df_all["r56"]
+
+    n_test = 200
+
+
 else:
     sys.exit("no such dataset for processing")
 
@@ -267,6 +289,15 @@ elif args.dataset == "SHAC":
     domain_col = "location"
     df0 = df_shac_uw
     df1 = df_shac_mimic
+
+elif args.dataset == "CD":
+    z_Categories = ["avh", "r56"]
+    label = "label_binary"
+    n_zCats = len(z_Categories)
+    txt_col = "text"
+    domain_col = "dfSource"
+    df0 = df_avh
+    df1 = df_r56
 
 if args.clf == "LR":
     lr_name = "regression"
@@ -588,8 +619,11 @@ for C, v in [
 
                     # use second half to get Confusion Matrix c
                     y_train_1_pred = f0.predict(x_transform_train_1)
-                    C_mat = confusion_matrix(
-                        y_true=y_train_1, y_pred=y_train_1_pred, labels=y_Categories
+                    # C_mat = confusion_matrix(
+                    #     y_true=y_train_1, y_pred=y_train_1_pred, labels=y_Categories
+                    # ).T
+                    C_mat = confusion_matrix_probs(
+                        y_true=y_train_1, y_pred=y_train_1_pred
                     ).T
                     C_mat = C_mat / len(y_train_1_pred)
 
@@ -673,8 +707,11 @@ for C, v in [
 
                 # use second half to get Confusion Matrix c
                 y_train_1_pred = f0.predict(x_transform_train_1)
-                C_mat = confusion_matrix(
-                    y_true=y_train_1, y_pred=y_train_1_pred, labels=y_Categories
+                # C_mat = confusion_matrix(
+                #     y_true=y_train_1, y_pred=y_train_1_pred, labels=y_Categories
+                # ).T
+                C_mat = confusion_matrix_probs(
+                    y_true=y_train_1, y_pred=y_train_1_pred
                 ).T
                 C_mat = C_mat / len(y_train_1_pred)
 
