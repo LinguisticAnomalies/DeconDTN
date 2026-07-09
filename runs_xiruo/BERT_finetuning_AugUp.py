@@ -109,12 +109,14 @@ globalconfig.max_seq_length = 512
 globalconfig.num_train_epochs = args.num_train_epochs  # 20 #3
 globalconfig.runs = 1
 globalconfig.lr = 1e-4
+# globalconfig.lr = 5.2e-05
 globalconfig.warmup_ratio = 0.1
 globalconfig.profiler = False
 globalconfig.device = args.device
 globalconfig.per_device_train_batch_size = args.batchSize
 globalconfig.per_device_eval_batch_size = args.batchSize
 globalconfig.weight_decay = 1e-3
+# globalconfig.weight_decay = 2.8e-05
 globalconfig.lr_scheduler_type = "constant"  # default "linear"
 
 ##### Split Settings
